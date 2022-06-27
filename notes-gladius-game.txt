@@ -1,0 +1,216 @@
+Elemental bending a la Avatar: The Last Airbender. Most people cannot bend, those that can usually only bend one element; you are a rare individual, called a Starborn, who can learn to master all 4 elements, though you start with only one.
+
+The combat is turn-based in the style of Paper Mario: The Thousand Year Door, and has a heavy focus on martial arts, including grappling, and the elemental synergy between the 4 natural elements.
+
+The setting is in Bronze Age Rome in the Coliseum, and you are a gladiator fighting in a series of tournaments. Each character's progression is based not on their gear, but on their accumulation of in-game techniques and out-of-game skill as a player.
+
+
+
+
+You can gain Boons which allow you to do something during combat that would normally be illegal (acquiring a temporary weapon, getting a temporary helper combatant, taking a break and healing, using some drugs or eating food (using an item basically), getting a free hit on the enemy, getting to reset your positions to the start of the fight, etc.). These are effectively one-time use "items" that you can call on at any point during the battle. You gain these by fulfilling certain randomized requirements during battles.
+
+
+
+Combat plays out like this.
+	Both sides select everything they want to do for the round.
+	Then the round executes, and is resolved. The Priority stat of techniques, and the speed of the combatants will be factored into determining which moves are executed in which order. Each technique is resolved one after another in a queue. Boons have the highest priority of all possible actions.
+	---- Attacks can be blocked with good timing, like Paper Mario. -----
+								(This could be problematic)
+	The next round begins.
+
+
+	Actions you can take on your turn:
+	
+		Technique
+		Claim Boon - 1 NRG
+		Retrieve Weapon (if you are disarmed) - 1 NRG
+			Priority -2
+			Chance to succeed: 50 + (Skill*2)% if Combat is Short, 100% if Wide.
+		Rest - 3 NRG
+			Priority -9
+			Restore 3 SP; if you are attacked during this turn, restore only 1 SP.
+		Suspend (save game)
+		Forfeit
+
+
+
+
+There are two modes of combat: Short (grappling), and Wide (non-grappling combat)
+
+Techniques fall under one of two of the above categories; some techniques can be used in either mode of combat, but most can only be used in their respective category.
+
+
+Elemental combat
+
+Earth
+Water
+Fire
+Air
+
+Fire is harmed by Water, strenthed by Air, defeats Earth
+Air is harmed by Earth, strengthed by Fire, defeats Water
+Water is harmed by Air, strengthed by Earth, defeats Fire
+Earth is harmed by Fire, strengthed by Water, defeats Air
+
+
+Fire -> Earth -> Air -> Water -> (Fire)
+
+Status effects:
+
+	Fire techniques can cause _Burn_ (Burning) effect.
+		Opponent takes 1 dmg per turn for the duration
+		
+	Earth techniques can cause _Daze_ (Dazed) effect.
+		25% chance that any given action will fail for the duration. 
+		
+	Air techniques can cause _Gasp_ (Gasping) effect.
+		Opponent has -10% to-hit for the duration
+		Opponent has -10% Evasion for the duration
+		
+	Water techniques can cause _Soft_ (Softened) effect.
+		Opponent has -1 to Def for the duration
+		Opponent has -1 to Speed for the duration
+	
+	The duration does not count down like a typical turn counter. Instead, each action attempted reduces the duration for all statuses by 1, so taking multiple actions per turn can reduce the duration of the effect significantly compared to taking a single action per turn.
+		
+	Statuses are not mutually exclusive. You can be Cold and Burning at the same time (that would suck). If a status is applied to a target that already is affected by that status, the status durations stack. There is no limit to how high the duration stack can get.
+
+
+Fire
+	Flame
+	Lightning
+	Explosion
+	Heat
+
+Earth
+	Wood
+	Dirt
+	Metal
+	Sand
+
+Air
+	Wind
+	Sound
+	Flying
+	Pressure
+
+Water
+	Water
+	Blood
+	Ice
+	Cold
+
+
+
+Weapon loadout affects stats, as well as what techniques are available to you in the battle (some techniques are only available with certain weapons).
+	
+	OUT OF DATE STAT DATA
+	
+Unarmed
+	No bonus or penalty.
+	
+
+
+Bow & Arrow (temporary weapon granted from Boons)
+	Wide to-hit: +10%
+	Wide Dmg +2
+
+Sword & Kris (temporary weapon granted from Boons)
+	Short to-hit: +10%
+	Evasion: +5%
+	Short Dmg +2
+	
+
+Disarming
+	When disarmed, you go into Unarmed weapon fighting, and lose your benefits of the weapon you had. You can retrieve your weapon as an action that takes 1 NRG.
+
+
+
+
+Primary Attributes
+	Body
+		Default: 10
+	Spirit
+		Default: 10
+	Skill (required to learn techniques)
+		Default: 3
+	
+
+Derived Attributes
+	Accuracy / to-hit  (this can be negative)
+		Default: 0
+	Evasion  (this can be negative)
+		Default: 5
+	Defense  (this can be negative)
+		Default: 0
+	Damage  (this can be negative)
+		Default: 0
+	Speed  (this can be negative)
+		Higher speed player attacks first when both combatants use equal priority techniques in one turn. Does NOT increase priority of attacks!
+		Default: 0
+	
+	Energy
+		Each player has 3 Energy that they can use each turn. Techniques cost a certain amount of energy, and if you don't have enough, you can't use that technique until next turn. If you do not use your Energy, at the end of your turn, you lose it.
+
+	SP
+		Spirit Points are required to use techniques, but it does not restore until the end of the round, or until you use some Boon to restore it.
+	HP
+		Health Points -- you die when they reach 0.
+
+
+Character Generation
+	You start with all Level 1 moves in the element of your choosing. This is your primary element, and Skill requirements for techniques in this element are reduced by 2. Your bane element is the one to the left of your element on the wheel (the one that defeats your element). All Skill requirements for this element are increased by 2.
+	You choose a favorite weapon, and you have +5% to-hit with that weapon. 
+
+Progression
+	You gain random Boon(s) after each battle for fulfilling the randomized Boon requirements.
+	You start at Level 1. Level is the same thing as the in-game tracker for your status as a fighter.
+	Leveling up is done after every victory. You can choose to increase one of the following stats:
+		Body + 2
+		Spirit + 2
+		Skill + 1
+	You also get +1 Tech point that you can use to buy a new technique.
+		Techniques cost the amount of Tech points equal to the Level of the technique.
+	* At level 5, you can choose a secondary favorite weapon, gain access to Level 2 techniques, and gain access to a new chosen Element and its tech tree.
+	* At level 10, you gain access to Level 3 techniques, and gain access to a new chosen Element and its tech tree. You can also choose to get a permanent boost to a secondary attribute:
+		Short Accuracy +5%
+		Wide Accuracy +5%
+		Evasion +3%
+		Fire Resistance +10% (Evasion +10% when attacked with Fire element)
+		Earth Resistance +10%
+		Water Resistance +10%
+		Air Resistance +10%
+	* At level 15, you gain access to Level 4 techniques, and gain access to a new chosen Element and its tech tree. You have become adept in your chosen style of combat, and can choose to get a permanent boost to a secondary attribute:
+		Wide Speed +1
+		Short Speed +1
+	* At level 20, you have mastered your style of combat, and can get another permanent boost to a secondary attribute:
+		Wide Dmg +1
+		Short Dmg +1
+		Def +1
+	* At level 25, you become a master of the elements, and can combine two elements into one attack, gaining access to signature techniques. Only 1 style may be selected and one of the elements in the style chosen must be your favored element. You will gain 1 Wide and 1 Short technique combining the elements from the chosen style.
+		Air + Fire: Inferno Style
+		Air + Earth: Poison Style
+		Air + Water: Blizzard Style
+		Fire + Earth: Volcano Style
+		Fire + Water: Boil Style
+		Earth + Water: Wood Style
+	
+	
+Failure and Game Over state
+	If you lose a battle, you become unable to fight due to trauma-induced physical handicap, and the game is over (load a save or, in hardcore mode, start over with a new character).
+
+
+
+
+
+
+
+Weapon Properties
+
+	Pierce X: Reduce enemy Defense by X before attack resolves.
+	
+
+
+
+
+
