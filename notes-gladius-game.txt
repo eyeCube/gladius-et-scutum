@@ -17,11 +17,19 @@ Combat plays out like this.
 	---- Attacks can be blocked with good timing, like Paper Mario. -----
 								(This could be problematic)
 	The next round begins.
+	
+	
 
 
 	Actions you can take on your turn:
 	
+		Attack - 1 NRG
+			Costs 0 SP
+			50% to-hit
+			1 damage
+			No element associated (neutral)
 		Technique
+			Open list of known techs and choose one to use
 		Claim Boon - 1 NRG
 		Retrieve Weapon (if you are disarmed) - 1 NRG
 			Priority -2
@@ -55,19 +63,25 @@ Earth is harmed by Fire, strengthed by Water, defeats Air
 
 Fire -> Earth -> Air -> Water -> (Fire)
 
+	You can gain one (1) extra damage per turn from exploiting elemental weaknesses.
+		Your first attack of the turn that has elemental advantage gains +1 Dmg and +10 to-hit. (If you miss this attack, you've lost this advantage)
+			The implications of this are that you may decide, for example, to use an elemental advantage with your first move of the turn, and then switch to using a different element for a subsequent move. This will change your most recently used element, hence changing your style and your elemental weakness potentially multiple times per turn in order to confuse your opponent.
+		To get elemental advantage, use an attack technique with the element that defeats the element your opponent used in their last move. This may require strategic planning to figure out what your opponent might do, if your opponent uses multiple elements.
+	
+
 Status effects:
 
-	Fire techniques can cause _Burn_ (Burning) effect.
+	Fire techniques can cause _Burning_ effect.
 		Opponent takes 1 dmg per turn for the duration
 		
-	Earth techniques can cause _Daze_ (Dazed) effect.
+	Earth techniques can cause _Stunned_ effect.
 		25% chance that any given action will fail for the duration. 
 		
-	Air techniques can cause _Gasp_ (Gasping) effect.
+	Air techniques can cause _Hypoxia_ (Hypoxic) effect.
 		Opponent has -10% to-hit for the duration
 		Opponent has -10% Evasion for the duration
 		
-	Water techniques can cause _Soft_ (Softened) effect.
+	Water techniques can cause _Softened_ effect.
 		Opponent has -1 to Def for the duration
 		Opponent has -1 to Speed for the duration
 	
@@ -159,15 +173,23 @@ Derived Attributes
 
 
 Character Generation
-	You start with all Level 1 moves in the element of your choosing. This is your primary element, and Skill requirements for techniques in this element are reduced by 2. Your bane element is the one to the left of your element on the wheel (the one that defeats your element). All Skill requirements for this element are increased by 2.
-	You choose a favorite weapon, and you have +5% to-hit with that weapon. 
+	Choose a favored element
+		You start with all Level 1 moves in the element of your choosing. This is your primary element, and Skill requirements for techniques in this element are reduced by 2. Your bane element is the one to the left of your element on the wheel (the one that defeats your element); all Skill requirements for this element are increased by 2.
+	Choose a favored weapon
+		You choose a favorite weapon, and you have +5% to-hit with that weapon.
+	Choose a stat to permanently boost
+		Body 		+3
+		Spirit 		+3
+		Skill 		+3
+		To-hit 		+5%
+		Evasion 	+5%
 
 Progression
 	You gain random Boon(s) after each battle for fulfilling the randomized Boon requirements.
 	You start at Level 1. Level is the same thing as the in-game tracker for your status as a fighter.
 	Leveling up is done after every victory. You can choose to increase one of the following stats:
-		Body + 2
-		Spirit + 2
+		Body + 1
+		Spirit + 1
 		Skill + 1
 	You also get +1 Tech point that you can use to buy a new technique.
 		Techniques cost the amount of Tech points equal to the Level of the technique.
@@ -175,7 +197,7 @@ Progression
 	* At level 10, you gain access to Level 3 techniques, and gain access to a new chosen Element and its tech tree. You can also choose to get a permanent boost to a secondary attribute:
 		Short Accuracy +5%
 		Wide Accuracy +5%
-		Evasion +3%
+		Evasion +5%
 		Fire Resistance +10% (Evasion +10% when attacked with Fire element)
 		Earth Resistance +10%
 		Water Resistance +10%

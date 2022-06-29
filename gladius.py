@@ -57,37 +57,56 @@ class Battle:
         # give players their energy
         self.pc.stats.fill_energy()
         self.npc.stats.fill_energy()
+
+        self.upkeep(self.pc)
+        self.upkeep(self.npc)
+        
+        # menu (TODO)
+
+        
         
         # player selects their moves
         pc_techs = self.pc.techs
-        pc_moves=[]
+        pc_chosen_moves=[]
         #temporary
-        pc_moves.append(TECHNIQUES["Pressure Bolt"])
-        pc_moves.append(TECHNIQUES["Gust Punch"])
+        pc_chosen_moves.append(TECHNIQUES["Pressure Bolt"])
+        pc_chosen_moves.append(TECHNIQUES["Gust Punch"])
         # spend SP (TODO)
+        # Ensure that you have enough SP and Energy;
+        #   also that you are in the right position to perform the technique (TODO!!)
         
         # NPC selects their moves
         npc_techs = self.npc.techs
-        npc_moves=[]
+        npc_chosen_moves=[]
         #temporary
-        npc_moves.append(TECHNIQUES["Firebolt"])
-        npc_moves.append(TECHNIQUES["Flame Whip"])
+        npc_chosen_moves.append(TECHNIQUES["Firebolt"])
+        npc_chosen_moves.append(TECHNIQUES["Flame Whip"])
         # spend SP (TODO)
 
-        self.resolve_techniques(pc_moves,npc_moves)
+        # move resolution
+        self.resolve_techniques(pc_chosen_moves, npc_chosen_moves)
     # end def
 
     def resolve_techniques(self, pc_moves, npc_moves):
         plist=[]
+        
         # resolution
         for move in pc_moves:
             priority = move['priority']
             speed = self.pc.stats.get("spd")
             plist.append((priority,speed,"PC",move,))
+            if dfn != 0: # temporary buffs (until beginning of next turn) are applied instantly
+                self.pc.stats.dfn_buff += dfn 
+            if eva != 0:
+                self.pc.stats.eva_buff += eva
         for move in npc_moves:
             priority = move['priority']
             speed = self.npc.stats.get("spd")
             plist.append((priority,speed,"NPC",move,))
+            if dfn != 0:
+                self.npc.stats.dfn_buff += dfn 
+            if eva != 0:
+                self.npc.stats.eva_buff += eva
         # sort by priority first, then by player speed, and finally,
         #   add some randomness for when speed and priorities are equal.
         sortlist = sorted(
@@ -106,6 +125,10 @@ class Battle:
                 player=self.npc
                 target=self.pc
                 
+            disarm = 0
+            pierce = 0
+
+            element = movedata['element']
             movename = movedata['name']
             mode = movedata['mode']
             spcost = movedata['sp']
@@ -114,32 +137,37 @@ class Battle:
             dmg = movedata['damage']
             dfn = movedata['defense']
             eva = movedata['evasion']
-            short = movedata['short']
-            wide = movedata['wide']
+            short = movedata['short'] # chance to move short
+            wide = movedata['wide'] # chance to move wide
             status = movedata['status']
             statusDur = movedata['status-dur']
+            
             player.stats.sp -= spcost
             player.stats.energy -= nrgcost
-            disarm = 0
-            pierce = 0
 
             damage = dmg + player.stats.get("dmg")
             tohit = acc + player.stats.get("acc")
+            tohit -= target.stats.get("eva")
 
             print("{} used {}!".format(playerName, movename))
             
             if (1+int(random.random()*100)) > tohit: # miss
-                print("It missed!")
+                print("    It missed!")
             else: # hit
-
-                # temporary ability buffs from the technique # these only last 1 turn
-                if dfn != 0:
-                    player.stats.dfn_buff = dfn 
-                if eva != 0:
-                    player.stats.eva_buff = eva
 
                 # apply special effects for the technique (from "Special" column)
                 damage,pierce,disarm = self.apply_special(player, target, movename, damage)
+
+                # standard status effect from element (burning, softened, hypoxic, stunned)
+                if (1+int(random.random()*100)) <= status:
+                    if element=="F": # Fire
+                        target.stats.accumulate_status("Burning", statusDur)
+                    elif element=="W": # Water
+                        target.stats.accumulate_status("Softened", statusDur)
+                    elif element=="A": # Air
+                        target.stats.accumulate_status("Hypoxic", statusDur)
+                    elif element=="E": # Earth
+                        target.stats.accumulate_status("Stunned", statusDur)
                 
                 # apply pierce by reducing defense of the target, down to a minimum of 0.
                 # If the target already has below 0 defense, no change is made.
@@ -148,16 +176,17 @@ class Battle:
                     target.stats.get("dfn") - pierce
                     )
                 actual_dmg = max(0, damage - targetDfn)
-                print("{} hit for {} dmg!".format(playerName, actual_dmg))
+                print("    It does {} dmg!".format(actual_dmg))
 
-                # deal damage (TODO)
+                # deal damage
+                target.stats.harm_hp(actual_dmg)
 
                 # attempt disarm based on disarm stat (TODO)
 
-            # standard status effect from element (burn, soft, gasp, daze)
+                # attempt to go wide or short as the technique may call for
 
             # countdown status timers
-            player.increment_status_timers()
+            player.stats.decrement_status_counters()
         # end for
     # end def
 
@@ -172,24 +201,25 @@ class Battle:
             player.stats.add_status("Pillow of Winds", 3)
         elif movename == "Suffocate":
             pierce += 2
-            target.stats.add_status("Prevent Healing", 1) # this would wear out immediately at end of the current turn, but could be useful still as attacks could still occur after this technique goes off.
+            target.stats.add_status("Prevent Healing", 2) # this would wear out immediately at end of the current turn, but could be useful still as attacks could still occur after this technique goes off.
         elif movename == "Double Image":
-            player.stats.add_status("Double Image",3) # +1 Spd
-        elif movename == "Shadow":
-            player.stats.buffs.update({"Shadow":999}) 
+            player.stats.add_status("Double Image",4) # +1 Spd
+        elif movename == "Cloud Clone":
+            player.stats.add_status("Cloud Clone",999) 
         elif movename == "Obfuscate":
             pierce += 1
         elif movename == "Disarming Gust":
-            disarm = 67
+            disarm = 50
         elif movename == "Submission":
             target.stats.add_status("Prevent Movement", 1)
         elif movename == "Vacuum Chamber":
             pierce += 6
-            target.stats.add_status("Prevent Healing", 1)
+        elif movename == "Third Eye":
+            target.stats.add_status("Third Eye", 6)
             
                     # ~~~ WATER ~~~ 
         elif movename == "Grab Weapon":
-            disarm = 50
+            disarm = 33
         elif movename == "Slippery Skin":
             player.stats.add_status("Slippery Skin",3)
         elif movename == "Acid Rain":
@@ -197,9 +227,9 @@ class Battle:
         elif movename == "Jet Stream":
             pierce += 1
         elif movename == "Liquefy":
-            player.stats.buffs.update({"Liquefy":3})
+            player.stats.add_status("Liquefy",3)
         elif movename == "Heal":
-            player.stats.buffs.update({"Heal":4})
+            player.stats.add_status("Heal",4)
         elif movename == "Icicle":
             pierce += 2
         elif movename == "Mend":
@@ -212,12 +242,18 @@ class Battle:
                     # ~~~ FIRE ~~~ 
         elif movename == "Singe":
             pierce += 1
+        elif movename == "Burning Net":
+            player.stats.add_status("Prevent Movement", 3)
         elif movename == "Lightning Bolt":
-            pierce += 2
+            pierce += 3
+        elif movename == "Static Grip":
+            player.stats.add_status("Prevent Movement", 3)
         
                     # ~~~ EARTH ~~~ 
         elif movename == "Harden":
             player.stats.add_status("Mana Rain", 6)
+        elif movename == "Sandstorm":
+            player.stats.add_status("Prevent Healing", 2)
         elif movename == "Drill":
             pierce += 1
         elif movename == "Constrict":
@@ -234,23 +270,35 @@ class Battle:
             pierce += 1
         elif movename == "Lockdown":
             target.stats.add_status("Prevent Movement", 3)
+        elif movename == "Suppressing Sands":
+            player.stats.clear_status()
 
         return (damage, pierce, disarm,)
-                
+
+
+    def upkeep(self, player):
+        if "Heal" in player.stats.buffs.keys():
+            player.heal_hp(1)
+        if "Mana Rain" in player.stats.buffs.keys():
+            player.heal_sp(1)
+        
+        player.stats.decrement_turn_timers()
+        
 # end class
 
 
 class Combatant_Stats:
-    def __init__(self, weapon=0):
-        self.update_needed = True
-
-        self.buffs={}
-        
+    def __init__(self, owner=None, weapon=0):
+        self.owner=owner
         self.weapon=weapon
+        self.lost_weapon=0
+        
+        self.update_needed = True
+        self.buffs={}
         self.mode="wide"
 
-        self.body=10        # 10 HP
-        self.spirit=10      # 10 SP
+        self.body=12        # -> HP
+        self.spirit=12      # -> SP
         self.skill=3
         
         self.energy=0
@@ -259,6 +307,9 @@ class Combatant_Stats:
         self.hp_max=0
         self.hp=0
 
+        # Modifiable stats:
+            # do not reference these directly, but use get() function to get them
+            # To modify the stat, call update_base() function
         self.acc=0          # Accuracy -- denoted as "HIT: +/-X%"
         self.acc_base=0
         self.acc_short=0
@@ -284,7 +335,7 @@ class Combatant_Stats:
         self.dfn_buff=0
         
         self.dmg=0
-        self.dmg_base=0
+        self.dmg_base=1     # +1 damage to keep things interesting
         self.dmg_short=0
         self.dmg_short_base=0
         self.dmg_wide=0
@@ -300,24 +351,55 @@ class Combatant_Stats:
         self.spd_buff=0
 
         self.pierce=0
+    # end def
 
-        self.weapon=0
-        self.lost_weapon=0
+    def get(self, stat):
+        if self.update_needed: # To test calculate_stats(), remove this check.
+            self.calculate_stats()
+            self.update_needed = False
+        return self.__dict__[stat]
 
-        self.status_burn=0 # fire
-        self.status_soft=0 # water
-        self.status_gasp=0 # air
-        self.status_daze=0 # earth
+    def update_base(self, stat, value):
+        self.__dict__["{}_base".format(stat)] = value
+        self.update_needed = True
 
-
+    def heal_hp(self, amount):
+        if amount <= 0: return
+        if "Prevent Healing" in player.stats.buffs.keys():
+            print("{} heal prevented!".format(self.owner.name))
+            return
+        self.hp = min(self.get("hp_max"), self.hp + amount)
+    def harm_hp(self, amount):
+        if amount <= 0: return
+        self.hp = max(0, self.hp - amount)
+            # check for death and exhaustion in the Battle class' turn() function
+    def heal_sp(self, amount):
+        if amount <= 0: return
+        self.sp = min(self.get("sp_max"), self.sp + amount)
+    def harm_sp(self, amount):
+        if amount <= 0: return
+        self.sp = max(0, self.sp - amount)
+        
     def fill_energy(self):
         self.energy = 3
 
-    def purify(self): # for use with the Purify technique
-        pass # only clear certain debuffs that are listed in the logic here
+    def purify(self):   # for use with the Purify technique.
+                        #   Clear negative status effects, excepting those that are
+                        #   physical in nature e.g. Prevent Movement, Prevent Healing
+        keys=self.buffs.keys()
+        elif "Burning" in keys:
+            del self.buffs["Burning"]
+        elif "Softened" in keys:
+            del self.buffs["Softened"]
+        elif "Hypoxic" in keys:
+            del self.buffs["Hypoxic"]
+        elif "Stunned" in keys:
+            del self.buffs["Stunned"]
+        self.update_needed = True
 
     def clear_status(self): # clear ALL status effects, good and bad
         self.buffs={}
+        self.update_needed = True
 
     def remove_tech_buffs(self): # do this at the beginning of each turn for all players.
         self.dmg_buff = 0
@@ -328,26 +410,48 @@ class Combatant_Stats:
         self.update_needed = True
 
     def add_status(self, status, duration):
-        self.buffs.update({status:duration})
+        self.buffs.update({status : duration})
         self.update_needed = True
-
     def remove_status(self, status):
-        del self.buffs[i]
+        del self.buffs[status]
         self.update_needed = True
+    def accumulate_status(self, status, duration):
+        # add the status if it doesn't exist, or if it does, add to the duration.
+        if status in self.buffs.keys():
+            self.buffs.update({status : self.buffs[status] + duration})
+        else:
+            self.add_status(status, duration)
 
-    def increment_status_timers(self):
+    def decrement_status_counters(self):
+        # Status effects that last for a set number of ACTIONS
         # IMPORTANT NOTE!!!!!
         #   This is done when you make an action. NOT when a turn counter increments.
-        
+
+        tlist=["Burning", "Softened", "Stunned", "Hypoxic",
+               "Prevent Movement", "Prevent Healing"
+               ]
+        self._decrement_statuses(tlist)
+    # end def
+    def decrement_turn_timers(self):
+        # Status effects that last for a set number of TURNS
+
+        tlist=["Harden", "Wall of Clay", "Pillow of Winds", "Double Image",
+               "Slippery Skin", "Liquefy", "Heal", "Mana Rain"
+               ]
+        self._decrement_statuses(tlist)
+    # end def
+    def _decrement_statuses(self, tlist):
         removelist=[]
         for k,v in self.buffs.items():
+            if k not in tlist:
+                continue
             newtime = v-1
             if newtime <= 0:
                 removelist.append(k)
             else:
                 self.buffs.update({k : v-1})
         for i in removelist:
-            self.remove_status(self, i)
+            self.remove_status(i)
     # end def
 
     def retrieve_weapon(self):
@@ -451,30 +555,26 @@ class Combatant_Stats:
 
         for k,v in self.buffs.items():
             if k=="Harden":
-                dfn += 1
+                self.dfn += 1
             elif k=="Wall of Clay":
-                eva += 5
+                self.eva += 5
             elif k=="Pillow of Winds":
-                eva += 5
+                self.eva += 5
             elif k=="Double Image":
-                spd += 1
+                self.spd += 1
             elif k=="Slippery Skin":
-                eva += 10
+                self.eva += 10
             elif k=="Liquefy":
-                dfn + 1
-
-
-        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-        
-##        self.update_needed = False  # reset update flag
-
-                # TODO: un-comment this out. This is temporary to test!
+                self.dfn += 1
+            elif k=="Softened":
+                self.dfn -= 1
+                self.spd -= 1
+            elif k=="Hypoxic":
+                self.eva -= 10
+                self.acc -= 10
+        # end for
     # end def
-
-    def get(self, stat):
-        if self.update_needed:
-            self.calculate_stats()
-        return self.__dict__[stat]
+        
 # end class
 
 
@@ -497,14 +597,16 @@ class Combatant_Techniques:
 
     
 class PlayerCharacter:
-    def __init__(self, favorite_element=0, weapon=0):
-        self.stats = Combatant_Stats(weapon)
+    def __init__(self, name="", favorite_element=0, weapon=0):
+        self.stats = Combatant_Stats(owner=self, weapon=weapon)
         self.techs = Combatant_Techniques(favorite_element)
+        self.name = name
         
 class NonPlayerCharacter:
-    def __init__(self, favorite_element=0, weapon=0):
-        self.stats = Combatant_Stats(weapon)
+    def __init__(self, name="", favorite_element=0, weapon=0):
+        self.stats = Combatant_Stats(owner=self, weapon=weapon)
         self.techs = Combatant_Techniques(favorite_element)
+        self.name = name
     
 
 
