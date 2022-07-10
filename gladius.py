@@ -7,16 +7,15 @@
 '''
 
 import pygame
-import pygame_menu
 import random
 
 from const import *
+import ui
 
 pygame.init()
-SURFACE = pygame.display.set_mode([1024, 768])
-
-menu = pygame_menu.Menu('Character Name', 300, 600,
-                       theme=pygame_menu.themes.THEME_DARK)
+WIDTH=1024
+HEIGHT=768
+SURFACE = pygame.display.set_mode([WIDTH, HEIGHT])
 
 def act_technique():
     pass
@@ -34,79 +33,325 @@ def act_forfeit():
 
 class Game:
     def __init__(self):
-        self.pc=PlayerCharacter(ELEM_AIR,weapon=0) #temporary
+        self.pc=PlayerCharacter(
+            name="Jaen", 
+            favorite_element=ELEM_AIR,
+            weapon=0
+            ) # temporary auto-populated test data
         self.pc_level = 1
+
+        # tech registry stack
+        self.register_init()
+        
+        # Menu initialization
+        self.menus={}
+        self.menus_toAdd={}
+        self.menus_toRemove=[]
+
+        # main menu
+        mainMenu = ui.ButtonGroup(
+            SURFACE, name="menu_main", enabled=False,
+            x=WIDTH/2-64, y=HEIGHT/2-64
+            )
+        self.menu_add("menu_main", mainMenu)
+        ui.Button(mainMenu, name="New Game", x1=0,y1=0,width=128,height=32, action=self.test)
+        ui.Button(mainMenu, name="Load", x1=0,y1=32,width=128,height=32, action=self.test)
+        ui.Button(mainMenu, name="Quit", x1=0,y1=64,width=128,height=32, action=self.test)
+
+
+    # menus #
+    
+    def handle_menus(self):
+        for name, menu in self.menus_toAdd.items():
+            self._menu_add(name, menu)
+        for name in self.menus_toRemove:
+            self._menu_remove(name)
+    def menu_add(self, name, menu):
+        self.menus_toAdd.update({name : menu})
+    def menu_remove(self, name):
+        self.menus_toRemove.append(name)
+    def _menu_add(self, name, menu):
+        self.menus.update({name : menu})
+    def _menu_remove(self, name):
+        if self.menus.get(name):
+            del self.menus[name]
+    def menu_disable(self, name):
+        if self.menus.get(name):
+            self.menus[name].disable()
+    def menu_enable(self, name):
+        if self.menus.get(name):
+            self.menus[name].enable()
+
+    # battle #
+
+    def init_battle(self, battle):
+        self.battle=battle
+        self._create_battle_menu(battle)
+    def _create_battle_menu(self, battle):
+        battleMenu = ui.ButtonGroup(
+            SURFACE, name="menu_a", enabled=True,
+            x=0, y=HEIGHT-256
+            )
+        self.menu_add("menu_a", battleMenu)
+        ui.Button(battleMenu, name="Attack", x1=0,y1=0,width=196,height=32, action=self.action_attack, args=[])
+        ui.Button(battleMenu, name="Technique", x1=0,y1=32,width=196,height=32, action=self.action_technique, args=[])
+        ui.Button(battleMenu, name="Study", x1=0,y1=64,width=196,height=32, action=self.action_study, args=[])
+        ui.Button(battleMenu, name="Claim Boon", x1=0,y1=96,width=196,height=32, action=self.action_boon, args=[])
+        ui.Button(battleMenu, name="Retrieve Weapon", x1=0,y1=128,width=196,height=32, action=self.action_retrieve, args=[])
+        ui.Button(battleMenu, name="Suspend Match", x1=0,y1=160,width=196,height=32, action=self.action_suspend, args=[])
+        ui.Button(battleMenu, name="Forfeit", x1=0,y1=192,width=196,height=32, action=self.action_forfeit, args=[])
+        ui.Button(battleMenu, name="--> Continue", x1=0,y1=224,width=196,height=32, action=self.action_continue, args=[self.battle])
+
+    # level B menus #
+    
+    def create_element_menu(self): # technique element menu
+        print("create element menu") 
+        techTypeMenu = ui.ButtonGroup(
+            SURFACE, name="menu_b", enabled=True,
+            x=196, y=HEIGHT-256
+            )
+        self.menu_add("menu_b", techTypeMenu)
+        self.menu_remove("menu_c")
+        self.menu_remove("menu_d")
+        ui.Button(techTypeMenu, name="Water", x1=0,y1=0,width=196,height=32,
+                  action=self.create_level_menu, args="water")
+        ui.Button(techTypeMenu, name="Air", x1=0,y1=32,width=196,height=32,
+                  action=self.create_level_menu, args="air")
+        ui.Button(techTypeMenu, name="Earth", x1=0,y1=64,width=196,height=32,
+                  action=self.create_level_menu, args="earth")
+        ui.Button(techTypeMenu, name="Fire", x1=0,y1=96,width=196,height=32,
+                  action=self.create_level_menu, args="fire")
+
+    # level C menus #
+    
+    def create_level_menu(self, element): # technique level selection menu
+        print("create level menu for", element)
+        techLevelMenu = ui.ButtonGroup(
+            SURFACE, name="menu_c", enabled=True,
+            x=2*196, y=HEIGHT-256
+            )
+        self.menu_add("menu_c", techLevelMenu)
+        self.menu_remove("menu_d")
+        # add each level that you have a technique for of this element
+        for i in range(MAX_TECH_LEVEL):
+            if self.pc.techs.techniques.get(element,{}).get(i+1):
+                ui.Button(
+                    techLevelMenu, name=(i+1), x1=0, y1=32*i, width=196, height=32,
+                    action=self.btn_tech_level, args=[(i+1)]
+                    )
+
+    # level D menus #
+    
+    def create_tech_menu(self, element, level): # technique selection menu
+        print("create tech menu for {}, lv{}".format(element, level))
+        techMenu = ui.ButtonGroup(
+            SURFACE, name="menu_d", enabled=True,
+            x=3*196, y=HEIGHT-256
+            )
+        self.menu_add("menu_d", techMenu)
+        # add each known technique that matches the element / level
+        for tech in self.pc.techs.techniques[element][level]:
+            ui.Button(
+                techMenu, name=tech, x1=0,y1=0, width=196,height=32,
+                action=self.register_tech, args=tech
+                )
+
+    # actions #
+    
+    def action_attack(self, args):
+        print("Attack")
+        self.register_tech("Attack")
+
+    def action_technique(self, args):
+        print("Technique")
+        self.create_element_menu()
+
+    def action_study(self, args):
+        print("Study")
+
+    def action_boon(self, args):
+        print("Boon")
+
+    def action_retrieve(self, args):
+        print("Retrieve")
+
+    def action_suspend(self, args):
+        print("Suspend")
+
+    def action_forfeit(self, args):
+        print("Forfeit")
+
+    def action_continue(self, args):
+        print("Continue")
+        # enemy chooses actions, combat plays out, then go to next round
+        # if you don't have any techs or attacks in the stack, you just do rest action
+        if not self.stack:
+            self._action_rest()
+        self.battle.turn_end()
+        self.battle.turn_begin()
+
+    def _action_rest(self):
+        print("Rest")
+        
+
+            # tech registry stack #
+    def register_tech(self, tech):
+        # add the chosen technique to the stack. It will appear in a list on screen.
+        # Once you choose CONFIRM, the battle round begins, the enemy selects their moves,
+        # the moves are ordered by priority and speed, and then the technique() function
+        # is called for each move in the proper order.
+        nrg_cost = TECHNIQUES[tech]["nrg"]
+        sp_cost = TECHNIQUES[tech]["sp"]
+        print(self.pc.stats.energy)
+        if (self.pc.stats.energy >= nrg_cost and self.pc.stats.sp >= sp_cost):
+            print("tech registered:", tech)
+            self.stack["PC"].append(tech)
+            self.pc.stats.energy -= nrg_cost
+            self.pc.stats.sp -= sp_cost
+            print(self.pc.stats.energy)
+        else:
+            print("Insufficient energy and/or sp to use this tech")
+    def register_backspace(self): # remove most recently registered tech
+        if self.stack["PC"]:
+            print("tech removed")
+            tech = self.stack["PC"][-1]
+            self.pc.stats.energy += TECHNIQUES[tech]["nrg"]
+            self.pc.stats.sp += TECHNIQUES[tech]["sp"]
+            del self.stack["PC"][-1]
+    def register_init(self): # clear registered techs from tech registry stack
+        self.stack = {"PC":[], "NPC":[]}
+    # follow through and actually do a tech, once it's finally time
+    def technique(self, tech):
+        print("Performing tech ", tech)
+        
+    
     def level_up(self):
         self.pc_level += 1
         # choose what to improve!
         # HP + 1
         # SP + 1
         # Skill + 1
+        stats = self.pc.stats
+        print('''Level up!\nChoose what to improve!
+b ...... Body (HP)
+s ...... Spirit (SP)
+t ...... Technique''')
+        while True:
+            inp = input("> ")
+            chosen=None
+            if inp=="b":
+                chosen="body"
+            elif inp=="s":
+                chosen="spirit"
+            elif inp=="t":
+                chosen="skill"
+            if chosen:
+                stats.improve_core_attribute(chosen, 1)
+            else:
+                print("Try again... :(")
+
+    def run(self):
+        mouse = pygame.mouse.get_pos()
+        
+        for ev in pygame.event.get(): 
+      
+            if ev.type == pygame.QUIT: 
+                pygame.quit()
+
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                self.check_menus_mouse(mouse)
+
+            if ev.type == pygame.KEYDOWN:
+                self.check_menus_button(ev.key)
+
+        self.handle_menus()
+
+        SURFACE.fill((30,70,70))
+        self.draw_menus()
+        pygame.display.flip()
+    # end def
+
+    def draw_menus(self):
+        for menu in self.menus.values():
+            menu.drawAll()
+
+    def check_menus_mouse(self, mouse):
+        for menu in self.menus.values():
+            menu.checkAll(mouse, isMouse=True)
+
+    def check_menus_button(self, key):
+        for menu in self.menus.values():
+            menu.checkAll(key, isMouse=False)
+
+    def test(self, args):
+        print("TEST SUCCESS!! {}".format(args))
+# end class
 
 
 class Battle:
-    def __init__(self, pc, npc):
+    def __init__(self, game, pc, npc):
+        self.game=game
         self.pc=pc
         self.npc=npc
+        self.mode="wide"
 
-    def turn(self):
+    def turn_begin(self):
+        print("turn begin")
         # reset buffs from techs
         self.pc.stats.remove_tech_buffs()
         self.npc.stats.remove_tech_buffs()
 
-        # give players their energy
+        # upkeep
         self.pc.stats.fill_energy()
         self.npc.stats.fill_energy()
-
         self.upkeep(self.pc)
         self.upkeep(self.npc)
-        
-        # menu (TODO)
 
+        # reset stack
+        self.game.register_init()
         
-        
-        # player selects their moves
-        pc_techs = self.pc.techs
-        pc_chosen_moves=[]
-        #temporary
-        pc_chosen_moves.append(TECHNIQUES["Pressure Bolt"])
-        pc_chosen_moves.append(TECHNIQUES["Gust Punch"])
-        # spend SP (TODO)
-        # Ensure that you have enough SP and Energy;
-        #   also that you are in the right position to perform the technique (TODO!!)
+    def turn_end(self):
         
         # NPC selects their moves
         npc_techs = self.npc.techs
         npc_chosen_moves=[]
         #temporary
-        npc_chosen_moves.append(TECHNIQUES["Firebolt"])
-        npc_chosen_moves.append(TECHNIQUES["Flame Whip"])
+        npc_chosen_moves.append("Firebolt")
+        npc_chosen_moves.append("Flame Whip")
         # spend SP (TODO)
 
         # move resolution
-        self.resolve_techniques(pc_chosen_moves, npc_chosen_moves)
+        self.resolve_techniques(self.game.stack["PC"], npc_chosen_moves)
     # end def
 
     def resolve_techniques(self, pc_moves, npc_moves):
         plist=[]
         
-        # resolution
+        # PC
         for move in pc_moves:
-            priority = move['priority']
+            data=TECHNIQUES[move]
+            priority = data['priority']
             speed = self.pc.stats.get("spd")
-            plist.append((priority,speed,"PC",move,))
-            if dfn != 0: # temporary buffs (until beginning of next turn) are applied instantly
+            plist.append((priority,speed,"PC",data,))
+
+            # temporary buffs (until beginning of next turn) are applied instantly
+            if data['defense'] != 0: 
                 self.pc.stats.dfn_buff += dfn 
-            if eva != 0:
+            if data['evasion'] != 0:
                 self.pc.stats.eva_buff += eva
+        # NPC 
         for move in npc_moves:
-            priority = move['priority']
+            data=TECHNIQUES[move]
+            priority = data['priority']
             speed = self.npc.stats.get("spd")
-            plist.append((priority,speed,"NPC",move,))
-            if dfn != 0:
+            plist.append((priority,speed,"NPC",data,))
+            
+            # " temporary buffs
+            if data['defense'] != 0:
                 self.npc.stats.dfn_buff += dfn 
-            if eva != 0:
+            if data['evasion'] != 0:
                 self.npc.stats.eva_buff += eva
+                
         # sort by priority first, then by player speed, and finally,
         #   add some randomness for when speed and priorities are equal.
         sortlist = sorted(
@@ -130,7 +375,7 @@ class Battle:
 
             element = movedata['element']
             movename = movedata['name']
-            mode = movedata['mode']
+            mode = movedata['mode'].lower()
             spcost = movedata['sp']
             nrgcost = movedata['nrg']
             acc = movedata['hit']
@@ -150,8 +395,10 @@ class Battle:
             tohit -= target.stats.get("eva")
 
             print("{} used {}!".format(playerName, movename))
-            
-            if (1+int(random.random()*100)) > tohit: # miss
+
+            if (mode!="both" and self.mode!=mode):
+                print("    It failed!")
+            elif (1+int(random.random()*100)) > tohit: # miss
                 print("    It missed!")
             else: # hit
 
@@ -175,15 +422,24 @@ class Battle:
                     min(0,target.stats.get("dfn")),
                     target.stats.get("dfn") - pierce
                     )
-                actual_dmg = max(0, damage - targetDfn)
+                actual_dmg = max(0, damage - targetDfn) if damage > 0 else 0
                 print("    It does {} dmg!".format(actual_dmg))
 
                 # deal damage
                 target.stats.harm_hp(actual_dmg)
 
                 # attempt disarm based on disarm stat (TODO)
+                if random.random()*100 < disarm:
+                    target.stats.disarm() # TODO func body
+                    print("Disarmed {}".format(target.name))
 
                 # attempt to go wide or short as the technique may call for
+                if (self.mode=="wide" and random.random()*100 < short):
+                    self.mode="short"
+                    print("Moved short")
+                elif (self.mode=="short" and random.random()*100 < wide):
+                    self.mode="wide"
+                    print("Moved wide")
 
             # countdown status timers
             player.stats.decrement_status_counters()
@@ -212,10 +468,17 @@ class Battle:
             disarm = 50
         elif movename == "Submission":
             target.stats.add_status("Prevent Movement", 1)
+        elif movename == "Compression Bomb":
+            if random.random()*100 < 50:
+                player.stats.accumulate_status("Stunned", 3)
         elif movename == "Vacuum Chamber":
             pierce += 6
         elif movename == "Third Eye":
             target.stats.add_status("Third Eye", 6)
+        elif movename == "Vortex":
+            disarm = 75
+        elif movename == "Dust Devils":
+            target.stats.add_status("Dust Devils", 2)
             
                     # ~~~ WATER ~~~ 
         elif movename == "Grab Weapon":
@@ -225,7 +488,8 @@ class Battle:
         elif movename == "Acid Rain":
             pierce += 1
         elif movename == "Jet Stream":
-            pierce += 1
+            if self.mode=="short":
+                pierce += 1
         elif movename == "Liquefy":
             player.stats.add_status("Liquefy",3)
         elif movename == "Heal":
@@ -238,16 +502,28 @@ class Battle:
             player.stats.add_status("Mana Rain", 6)
         elif movename == "Purify":
             player.stats.purify()
+        elif movename == "Pressure Beam":
+            pierce += 2
+        elif movename == "Frostbite":
+            if random.random()*100 < 50:
+                player.stats.accumulate_status("Burning", 6)
         
                     # ~~~ FIRE ~~~ 
         elif movename == "Singe":
             pierce += 1
+        elif movename == "Grasshopper":
+            player.stats.add_status("Grasshopper", 4)
         elif movename == "Burning Net":
             player.stats.add_status("Prevent Movement", 3)
+        elif movename == "Flaming Aura":
+            target.stats.add_status("Flaming Aura", 2)
         elif movename == "Lightning Bolt":
             pierce += 3
         elif movename == "Static Grip":
             player.stats.add_status("Prevent Movement", 3)
+        elif movename == "Overdrive":
+            if random.random()*100 < 90:
+                player.stats.accumulate_status("Hypoxic", 3)
         
                     # ~~~ EARTH ~~~ 
         elif movename == "Harden":
@@ -260,8 +536,11 @@ class Battle:
             pierce += 1
         elif movename == "Armorslayer":
             pierce += 3
-            if target.stats.get("dfn") < 2:
+            if target.stats.get("dfn") <= 0:
                 damage = 0
+        elif movename == "Vibrohammer":
+            if random.random()*100 < 33:
+                player.stats.accumulate_status("Softened", 3)
         elif movename == "Wall of Clay":
             player.stats.add_status("Wall of Clay", 6)
         elif movename == "Earthwave":
@@ -335,7 +614,7 @@ class Combatant_Stats:
         self.dfn_buff=0
         
         self.dmg=0
-        self.dmg_base=1     # +1 damage to keep things interesting
+        self.dmg_base=1     # +1 damage to keep things interesting and moving
         self.dmg_short=0
         self.dmg_short_base=0
         self.dmg_wide=0
@@ -358,6 +637,10 @@ class Combatant_Stats:
             self.calculate_stats()
             self.update_needed = False
         return self.__dict__[stat]
+
+    def improve_core_attribute(self, stat, add_value):
+        self.__dict__[stat] += add_value
+        self.update_needed = True
 
     def update_base(self, stat, value):
         self.__dict__["{}_base".format(stat)] = value
@@ -387,7 +670,7 @@ class Combatant_Stats:
                         #   Clear negative status effects, excepting those that are
                         #   physical in nature e.g. Prevent Movement, Prevent Healing
         keys=self.buffs.keys()
-        elif "Burning" in keys:
+        if "Burning" in keys:
             del self.buffs["Burning"]
         elif "Softened" in keys:
             del self.buffs["Softened"]
@@ -572,6 +855,14 @@ class Combatant_Stats:
             elif k=="Hypoxic":
                 self.eva -= 10
                 self.acc -= 10
+            elif k=="Third Eye":
+                self.acc += 5
+            elif k=="Dust Devils":
+                self.dmg_wide += 1
+            elif k=="Flaming Aura":
+                self.dmg_short += 1
+            elif k=="Grasshopper":
+                self.spd += 1
         # end for
     # end def
         
@@ -579,19 +870,36 @@ class Combatant_Stats:
 
 
 class Combatant_Techniques:
-    def __init__(self, favorite_element):
-        self.techniques=[]
+    def __init__(self, favorite_element=None):
+        self.techniques={ "fire":{}, "earth":{}, "air":{}, "water":{} }
+        # example: {"fire": {1: ["Firebolt",],},
         self.favorite_element=favorite_element
+
     def add_tech(self, tech):
-        self.techniques.append(tech)
+        element = ELEMENTS[TECHNIQUES[tech]['element']]
+        level = TECHNIQUES[tech]['level']
+        if self.techniques[element].get(level):
+            self.techniques[element][level].append(tech)
+        else:
+            self.techniques[element].update({level: [tech]})
+
     def remove_tech(self, tech):
-        if tech in self.techniques:
-            del self.techniques[tech]
+        element = ELEMENTS[TECHNIQUES[tech]['element']]
+        level = TECHNIQUES[tech]['level']
+        try:
+            self.techniques[element][level].remove(tech)
+        except:
+            print("Failed to remove tech -- {} lv{}: '{}'".append(element, level, tech))
+
     def learn_tech(self, owner, tech):
-        reqSkill = TECHNIQUES[tech]["req-skill"]
-        #favorite_element -- SP cost -2
+        data = TECHNIQUES[tech]
+        reqSkill = data["req-skill"]
+        if ELEMENTS[data["element"]]==self.favorite_element:
+            reqSkill -= 2
         if owner.stats.skill >= reqSkill:
             self.add_tech(tech)
+            return True
+        return False
 # end class
         
 
@@ -613,12 +921,24 @@ class NonPlayerCharacter:
 if __name__=="__main__":
 
     game = Game()
+    pc = game.pc
     
-    npc=NonPlayerCharacter(ELEM_FIRE,weapon=WPN_NONE) #temporary
+    npc=NonPlayerCharacter(
+        name="Bob",
+        favorite_element=ELEM_FIRE,
+        weapon=WPN_NONE
+        ) #temporary
 
-    # temporary -- testing
-    battle=Battle(game.pc,npc)
-    battle.turn()
+    pc.stats.calculate_stats()
+    npc.stats.calculate_stats()
+
+
+    battle=Battle(game, pc, npc)
+    game.init_battle(battle)
+
+    battle.turn_begin()
+    while True:
+        game.run()
     
     
 

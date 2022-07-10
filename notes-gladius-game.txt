@@ -22,24 +22,81 @@ Combat plays out like this.
 
 
 	Actions you can take on your turn:
-	
+		
 		Attack - 1 NRG
+			Priority = 0
 			Costs 0 SP
 			50% to-hit
 			1 damage
 			No element associated (neutral)
+			
 		Technique
 			Open list of known techs and choose one to use
+	
+		Study - 1 NRG
+			Priority = 0
+			Using your brilliant deductive reasoning, you gain vital knowledge about your opponent from their fighting style, mannerisms, their posture, accent, hygiene, etc. Anything to get an edge.
+			Learn some of your opponent's stats and techniques. You can learn:
+				HP and HP max
+				SP and SP max
+				Accuracy
+				Evasion
+				Speed
+				Damage
+				Defense
+			You cannot learn what Techniques they use by Studying during battle, the only way to know is to hear about it or see them perform the tech.
+			IDEA: The first time you use this action in a battle or when you still have stats to learn, you learn the above stats. After you've learned them, subsequent uses of the Study action cost 0 NRG and allow you to review the stats of your opponent, since not all of these stats are going to be shown on the screen at all times, right?
+			
 		Claim Boon - 1 NRG
+			Priority = 3
+		
 		Retrieve Weapon (if you are disarmed) - 1 NRG
-			Priority -2
+			Priority = -2
 			Chance to succeed: 50 + (Skill*2)% if Combat is Short, 100% if Wide.
+			
 		Rest - 3 NRG
-			Priority -9
+			Priority = -9
 			Restore 3 SP; if you are attacked during this turn, restore only 1 SP.
+			
 		Suspend (save game)
+			Priority = 9
+			Saves current game, Brings you to main menu
+		
 		Forfeit
-
+			Priority = 3
+			Asks if you're sure, then forfeits the match -- you lose gold for the fight as with failure, and you do not level up. This is a major setback but it's better than straight up losing the fight, because if you lose, you lose gold AND also fall back a level.
+		
+		
+	Knowledge you have of your opponent before the fight:
+		Name
+		Favored weapon
+		Possibly some or all of the techniques that they use by name, but more generally...
+		Which styles of combat they typically use 
+			e.g. "they run Short and use aggressive Fire and Water tech" or "they fight Wide using defensive Air techniques"
+		If you did research on your opponent before the fight, you may learn one or more of your opponent's stats:
+				HP and HP max
+				SP and SP max
+				Accuracy
+				Evasion
+				Defense
+				Damage
+				Speed
+			- Once you learn this information from your opponent you never lose it and can see it update during the fight. 
+			- You can learn info by researching before a fight just by asking people about the combatant. Doing so may require you to give something in return, however.
+				You can give info you learn to other combatants to buy more info, but doing so may make them stronger and make them into tougher combatants if you have to fight them in the ring eventually.
+			- Another way to learn info about a combatant is to watch them fight. This can be a great way to see their strategy in action before having to face it yourself. This gives you all the info about your opponent.
+		
+	Knowledge you have of your opponent at start of fight:
+		Weapon equipped (& whether it's their favored weapon)
+		Everything that you knew before the fight (listed above)
+		
+	Knowledge you gain during the fight:
+		Studying can teach you everything about the opponent with just 2 NRG.
+		But if you just fight without Studying you will still gain knowledge.
+			When you strike your opponent, you automatically learn how much HP, Defense and Evasion they have.
+			When you are struck by your opponent, you learn their SP, Accuracy, Damage, and Speed, as well as the 
+			
+		
 
 
 
@@ -72,22 +129,28 @@ Fire -> Earth -> Air -> Water -> (Fire)
 Status effects:
 
 	Fire techniques can cause _Burning_ effect.
-		Opponent takes 1 dmg per turn for the duration
+		Opponent takes 1 (piercing) dmg per turn for the duration
 		
 	Earth techniques can cause _Stunned_ effect.
 		25% chance that any given action will fail for the duration. 
 		
 	Air techniques can cause _Hypoxia_ (Hypoxic) effect.
-		Opponent has -10% to-hit for the duration
-		Opponent has -10% Evasion for the duration
+		Opponent has -10 to HIT for the duration
+		Opponent has -10 to EVA for the duration
 		
 	Water techniques can cause _Softened_ effect.
-		Opponent has -1 to Def for the duration
-		Opponent has -1 to Speed for the duration
+		Opponent has -1 to DFN for the duration
+		Opponent has -1 to SPD for the duration
 	
 	The duration does not count down like a typical turn counter. Instead, each action attempted reduces the duration for all statuses by 1, so taking multiple actions per turn can reduce the duration of the effect significantly compared to taking a single action per turn.
 		
 	Statuses are not mutually exclusive. You can be Cold and Burning at the same time (that would suck). If a status is applied to a target that already is affected by that status, the status durations stack. There is no limit to how high the duration stack can get.
+	
+	It is also possible, although rare, for an element to cause a status effect outside its normal effects for that element. For instance:
+		Frostbite - Water: Burn
+		Drill - Earth: Soften
+		Compression Bomb - Air: Stun
+		Slow Burn - Fire: Hypoxia
 
 
 Fire
@@ -122,6 +185,69 @@ Weapon loadout affects stats, as well as what techniques are available to you in
 	
 Unarmed
 	No bonus or penalty.
+	
+	Javelin & Shield
+		speed +2
+		to-hit +5
+		evasion +10
+		defense +1
+		
+	Hammer & Shield
+		evasion +5
+		damage +1
+		pierce +1
+		
+	Sword & Dagger
+		speed +1
+		short to-hit +10
+		evasion +8
+		short damage +1
+		
+	Axe & Shield
+		short speed +2
+		short to-hit +5
+		evasion +6
+		damage +1
+		
+	Whip & Rope
+		wide speed +1
+		wide to-hit +5
+		evasion +2
+		defense -1
+		short damage +2
+		
+	Chakram
+		short speed +3
+		short to-hit +6
+		evasion +10
+		wide Damage +1
+		
+	Spear
+		wide speed +2
+		wide to-hit +10
+		evasion +10
+		wide damage +1
+		
+	Pole
+		wide speed +4
+		short to-hit -10
+		evasion +4
+		defense +1
+		wide damage +1
+		
+	Net
+		wide speed +3
+		wide to-hit +15
+		evasion +4
+		defense -1
+		wide damage +1
+		
+	Sling
+		wide speed +5
+		wide to-hit +5
+		evasion +2
+		defense -1
+		wide damage +2
 	
 
 
@@ -198,7 +324,8 @@ Progression
 		Short Accuracy +5%
 		Wide Accuracy +5%
 		Evasion +5%
-		Fire Resistance +10% (Evasion +10% when attacked with Fire element)
+		Fire Resistance +10% 
+			(Evasion +10% when attacked with Fire element, and chance to receive Burning status effect is reduced by 10 so e.g. a 33% chance would become 23%.)
 		Earth Resistance +10%
 		Water Resistance +10%
 		Air Resistance +10%
@@ -226,13 +353,28 @@ Failure and Game Over state
 
 
 
+MENU
 
-Weapon Properties
+	Maximum list size: 8
 
-	Pierce X: Reduce enemy Defense by X before attack resolves.
+		1. Attack
+		2. Technique
+			1. Water
+				1. Level 1, ...
+					(learned level 1 water techniques)
+			2. Air
+			3. Earth
+			4. Fire
+		3. Study
+		4. Claim Boon
+			(list of boons you have)
+		5. Retrieve Weapon (if you are disarmed, else disabled)
+		6. Rest
+		7. Suspend Match (save game)
+		8. Forfeit
+			("Forfeit" changes to "Are you sure?"			
+			1. Yes
+			2. No
+		
+		
 	
-
-
-
-
-

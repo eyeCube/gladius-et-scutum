@@ -1,0 +1,18 @@
+Grasshopper (Fire)
+					WIDE
+		SP 2 		/		NRG 2
+		HIT 85% 			EVA +5%
+		DMG 1 				DFN 			(<-- greyed out)
+	50% chance to move Short
+	17% chance target is Burning for 3 actions
+	Speed +1 for 3 turns
+
+
+Firebolt (Fire)
+					WIDE
+		SP 1 		/		NRG 1
+		HIT 80% 			EVA 			(<-- greyed out)
+		DMG 1 				DFN 			(<-- greyed out)
+	17% chance target is Burning for 2 actions
+
+

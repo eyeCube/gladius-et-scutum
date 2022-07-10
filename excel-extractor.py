@@ -61,6 +61,29 @@ for sheet in ability_sheets:
             abilities.update({ability[0]: data})
 
 
+# generic attack tech
+data={}
+data.update({"name":"Attack"})
+data.update({"element":""})
+data.update({"mode":"both"})
+data.update({"pre-reqs":""})
+data.update({"req-skill":0})
+data.update({"level":0})
+data.update({"weapon":"Any"})
+data.update({"sp":0})
+data.update({"nrg":1})
+data.update({"hit":50})
+data.update({"priority":0})
+data.update({"damage":1})
+data.update({"defense":0})
+data.update({"evasion":0})
+data.update({"short":0})
+data.update({"wide":0})
+data.update({"status":0})
+data.update({"status-dur":0})
+data.update({"special":""})
+abilities.update({"Attack":data})
+
 # output
 
 print('{')
