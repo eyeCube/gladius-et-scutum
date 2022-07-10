@@ -12,10 +12,11 @@ class ButtonGroup:
     groupID = 0
     
     def __init__(self, surf, name=None, x=0,y=0, enabled=True):
+        self.ID=ButtonGroup.groupID
+        ButtonGroup.groupID += 1
         self.surface = surf
         if name==None:
             name = "Group{}".format(ButtonGroup.groupID)
-            ButtonGroup.groupID += 1
         self.name = name
         self.enabled = enabled
         self.x=x

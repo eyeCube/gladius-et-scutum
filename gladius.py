@@ -33,6 +33,8 @@ def act_forfeit():
 
 class Game:
     def __init__(self):
+        self.locked=False   # used to lock out player input
+        
         self.pc=PlayerCharacter(
             name="Jaen", 
             favorite_element=ELEM_AIR,
@@ -58,6 +60,9 @@ class Game:
         ui.Button(mainMenu, name="Load", x1=0,y1=32,width=128,height=32, action=self.test)
         ui.Button(mainMenu, name="Quit", x1=0,y1=64,width=128,height=32, action=self.test)
 
+        self.menu_switch_focus("menu_main")
+
+        
 
     # menus #
     
@@ -66,6 +71,8 @@ class Game:
             self._menu_add(name, menu)
         for name in self.menus_toRemove:
             self._menu_remove(name)
+        self.menus_toAdd = {}
+        self.menus_toRemove = []
     def menu_add(self, name, menu):
         self.menus_toAdd.update({name : menu})
     def menu_remove(self, name):
@@ -81,6 +88,18 @@ class Game:
     def menu_enable(self, name):
         if self.menus.get(name):
             self.menus[name].enable()
+    def menu_switch_focus(self, menu):
+        self.menu_in_focus = menu
+    def menu_up_directory(self):
+        if self.menu_in_focus == "menu_b":
+            self.menu_remove("menu_b")
+            self.menu_in_focus = "menu_a"
+        elif self.menu_in_focus == "menu_c":
+            self.menu_remove("menu_c")
+            self.menu_in_focus = "menu_b"
+        elif self.menu_in_focus == "menu_d":
+            self.menu_remove("menu_d")
+            self.menu_in_focus = "menu_c"
 
     # battle #
 
@@ -93,14 +112,25 @@ class Game:
             x=0, y=HEIGHT-256
             )
         self.menu_add("menu_a", battleMenu)
-        ui.Button(battleMenu, name="Attack", x1=0,y1=0,width=196,height=32, action=self.action_attack, args=[])
-        ui.Button(battleMenu, name="Technique", x1=0,y1=32,width=196,height=32, action=self.action_technique, args=[])
-        ui.Button(battleMenu, name="Study", x1=0,y1=64,width=196,height=32, action=self.action_study, args=[])
-        ui.Button(battleMenu, name="Claim Boon", x1=0,y1=96,width=196,height=32, action=self.action_boon, args=[])
-        ui.Button(battleMenu, name="Retrieve Weapon", x1=0,y1=128,width=196,height=32, action=self.action_retrieve, args=[])
-        ui.Button(battleMenu, name="Suspend Match", x1=0,y1=160,width=196,height=32, action=self.action_suspend, args=[])
-        ui.Button(battleMenu, name="Forfeit", x1=0,y1=192,width=196,height=32, action=self.action_forfeit, args=[])
-        ui.Button(battleMenu, name="--> Continue", x1=0,y1=224,width=196,height=32, action=self.action_continue, args=[self.battle])
+        self.menu_switch_focus("menu_a")
+        ui.Button(battleMenu, name="--> Continue", x1=0,y1=0,width=196,height=32,
+                  action=self.action_continue, args=[self.battle], hotkey=pygame.K_1)
+            # TODO: make this button say "Rest" if NRG == 3
+        ui.Button(battleMenu, name="Attack", x1=0,y1=32,width=196,height=32,
+                  action=self.action_attack, args=[], hotkey=pygame.K_2)
+        ui.Button(battleMenu, name="Technique", x1=0,y1=64,width=196,height=32,
+                  action=self.action_technique, args=[], hotkey=pygame.K_3)
+        ui.Button(battleMenu, name="Study", x1=0,y1=96,width=196,height=32,
+                  action=self.action_study, args=[], hotkey=pygame.K_4)
+        ui.Button(battleMenu, name="Claim Boon", x1=0,y1=128,width=196,height=32,
+                  action=self.action_boon, args=[], hotkey=pygame.K_5)
+        ui.Button(battleMenu, name="Retrieve Weapon", x1=0,y1=160,width=196,height=32,
+                  action=self.action_retrieve, args=[], hotkey=pygame.K_6)
+            # TODO: make this button say "Drop Weapon" if weapon is equipped, and do drop function
+        ui.Button(battleMenu, name="Suspend Match", x1=0,y1=192,width=196,height=32,
+                  action=self.action_suspend, args=[], hotkey=pygame.K_7)
+        ui.Button(battleMenu, name="Forfeit", x1=0,y1=224,width=196,height=32,
+                  action=self.action_forfeit, args=[], hotkey=pygame.K_8)
 
     # level B menus #
     
@@ -111,44 +141,49 @@ class Game:
             x=196, y=HEIGHT-256
             )
         self.menu_add("menu_b", techTypeMenu)
+        self.menu_switch_focus("menu_b")
         self.menu_remove("menu_c")
         self.menu_remove("menu_d")
         ui.Button(techTypeMenu, name="Water", x1=0,y1=0,width=196,height=32,
-                  action=self.create_level_menu, args="water")
+                  action=self.create_level_menu, args=["water"], hotkey=pygame.K_1)
         ui.Button(techTypeMenu, name="Air", x1=0,y1=32,width=196,height=32,
-                  action=self.create_level_menu, args="air")
+                  action=self.create_level_menu, args=["air"], hotkey=pygame.K_2)
         ui.Button(techTypeMenu, name="Earth", x1=0,y1=64,width=196,height=32,
-                  action=self.create_level_menu, args="earth")
+                  action=self.create_level_menu, args=["earth"], hotkey=pygame.K_3)
         ui.Button(techTypeMenu, name="Fire", x1=0,y1=96,width=196,height=32,
-                  action=self.create_level_menu, args="fire")
+                  action=self.create_level_menu, args=["fire"], hotkey=pygame.K_4)
 
     # level C menus #
     
-    def create_level_menu(self, element): # technique level selection menu
+    def create_level_menu(self, args): # technique level selection menu
+        element=args[0]
         print("create level menu for", element)
         techLevelMenu = ui.ButtonGroup(
             SURFACE, name="menu_c", enabled=True,
             x=2*196, y=HEIGHT-256
             )
         self.menu_add("menu_c", techLevelMenu)
+        self.menu_switch_focus("menu_c")
         self.menu_remove("menu_d")
         # add each level that you have a technique for of this element
         for i in range(MAX_TECH_LEVEL):
             if self.pc.techs.techniques.get(element,{}).get(i+1):
                 ui.Button(
                     techLevelMenu, name=(i+1), x1=0, y1=32*i, width=196, height=32,
-                    action=self.btn_tech_level, args=[(i+1)]
+                    action=self.create_tech_menu, args=[element, (i+1)]
                     )
 
     # level D menus #
     
-    def create_tech_menu(self, element, level): # technique selection menu
+    def create_tech_menu(self, args): # technique selection menu
+        element, level = args
         print("create tech menu for {}, lv{}".format(element, level))
         techMenu = ui.ButtonGroup(
             SURFACE, name="menu_d", enabled=True,
             x=3*196, y=HEIGHT-256
             )
         self.menu_add("menu_d", techMenu)
+        self.menu_switch_focus("menu_d")
         # add each known technique that matches the element / level
         for tech in self.pc.techs.techniques[element][level]:
             ui.Button(
@@ -183,15 +218,18 @@ class Game:
 
     def action_continue(self, args):
         print("Continue")
-        # enemy chooses actions, combat plays out, then go to next round
         # if you don't have any techs or attacks in the stack, you just do rest action
-        if not self.stack:
-            self._action_rest()
+        self.pc.resting = True if not self.stack["PC"] else False
+        self.pc.rest_interrupted = False
+        # enemy chooses actions, combat plays out, then go to next round
         self.battle.turn_end()
-        self.battle.turn_begin()
+        if self.pc.resting:
+            self._action_rest(self.pc.rest_interrupted)
+        self.battle.turn_begin() # prompt user for input again
 
-    def _action_rest(self):
-        print("Rest")
+    def _action_rest(self, interrupted):
+        print("Rest. Interrupted:",interrupted)
+        self.pc.stats.heal_sp(1 if interrupted else 3)
         
 
             # tech registry stack #
@@ -252,20 +290,28 @@ t ...... Technique''')
 
     def run(self):
         mouse = pygame.mouse.get_pos()
+
+        # event phase
         
         for ev in pygame.event.get(): 
       
             if ev.type == pygame.QUIT: 
                 pygame.quit()
 
-            if ev.type == pygame.MOUSEBUTTONDOWN:
-                self.check_menus_mouse(mouse)
+            if not self.locked:
+                if ev.type == pygame.MOUSEBUTTONDOWN:
+                    self.check_menus_mouse(mouse)
+                if ev.type == pygame.KEYDOWN:
+                    self.check_menus_button(ev.key)
+                    if ev.key==pygame.K_ESCAPE:
+                        self.menu_up_directory()
 
-            if ev.type == pygame.KEYDOWN:
-                self.check_menus_button(ev.key)
+        # game upkeep #
 
-        self.handle_menus()
+        self.handle_menus() # update menu stuff
 
+        # draw phase #
+        
         SURFACE.fill((30,70,70))
         self.draw_menus()
         pygame.display.flip()
@@ -280,8 +326,9 @@ t ...... Technique''')
             menu.checkAll(mouse, isMouse=True)
 
     def check_menus_button(self, key):
-        for menu in self.menus.values():
-            menu.checkAll(key, isMouse=False)
+        for name,menu in self.menus.items():
+            if name==self.menu_in_focus:
+                menu.checkAll(key, isMouse=False)
 
     def test(self, args):
         print("TEST SUCCESS!! {}".format(args))
@@ -311,6 +358,10 @@ class Battle:
         self.game.register_init()
         
     def turn_end(self):
+
+        self.game.locked=True
+            # ^ just in case we have some animations in the future that involve
+            # multiple frames playing during multiple iterations of the main game loop
         
         # NPC selects their moves
         npc_techs = self.npc.techs
@@ -320,8 +371,13 @@ class Battle:
         npc_chosen_moves.append("Flame Whip")
         # spend SP (TODO)
 
+        # rest
+        self.npc.resting=False
+        self.npc.rest_interrupted=False
+
         # move resolution
         self.resolve_techniques(self.game.stack["PC"], npc_chosen_moves)
+        self.game.locked=False
     # end def
 
     def resolve_techniques(self, pc_moves, npc_moves):
@@ -441,6 +497,10 @@ class Battle:
                     self.mode="wide"
                     print("Moved wide")
 
+                # interrupt rest
+                if target.resting:
+                    target.rest_interrupted=True
+
             # countdown status timers
             player.stats.decrement_status_counters()
         # end for
@@ -524,20 +584,22 @@ class Battle:
         elif movename == "Overdrive":
             if random.random()*100 < 90:
                 player.stats.accumulate_status("Hypoxic", 3)
+        elif movename == "Conduction":
+            disarm = 100
         
                     # ~~~ EARTH ~~~ 
         elif movename == "Harden":
             player.stats.add_status("Mana Rain", 6)
         elif movename == "Sandstorm":
-            player.stats.add_status("Prevent Healing", 2)
+            player.stats.add_status("Prevent Healing", 3)
         elif movename == "Drill":
             pierce += 1
         elif movename == "Constrict":
             pierce += 1
         elif movename == "Armorslayer":
-            pierce += 3
+            pierce += 4
             if target.stats.get("dfn") <= 0:
-                damage = 0
+                damage = 1
         elif movename == "Vibrohammer":
             if random.random()*100 < 33:
                 player.stats.accumulate_status("Softened", 3)
@@ -551,6 +613,8 @@ class Battle:
             target.stats.add_status("Prevent Movement", 3)
         elif movename == "Suppressing Sands":
             player.stats.clear_status()
+        elif movename == "Grounding":
+            player.stats.purify()
 
         return (damage, pierce, disarm,)
 
@@ -904,17 +968,16 @@ class Combatant_Techniques:
         
 
     
-class PlayerCharacter:
+class PlayerCharacter: # class PC class and non-player character NonPlayerCharacter
     def __init__(self, name="", favorite_element=0, weapon=0):
         self.stats = Combatant_Stats(owner=self, weapon=weapon)
         self.techs = Combatant_Techniques(favorite_element)
         self.name = name
-        
-class NonPlayerCharacter:
-    def __init__(self, name="", favorite_element=0, weapon=0):
-        self.stats = Combatant_Stats(owner=self, weapon=weapon)
-        self.techs = Combatant_Techniques(favorite_element)
-        self.name = name
+        self.resting = False
+        self.rest_interrupted = False
+        self.stale_moves = 0            # counter for doing the same move x times in a row
+                                        # reduce accuracy proportional to this value
+     
     
 
 
@@ -923,7 +986,7 @@ if __name__=="__main__":
     game = Game()
     pc = game.pc
     
-    npc=NonPlayerCharacter(
+    npc=PlayerCharacter(
         name="Bob",
         favorite_element=ELEM_FIRE,
         weapon=WPN_NONE
@@ -932,6 +995,7 @@ if __name__=="__main__":
     pc.stats.calculate_stats()
     npc.stats.calculate_stats()
 
+    print("OPEN")
 
     battle=Battle(game, pc, npc)
     game.init_battle(battle)
