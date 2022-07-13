@@ -28,11 +28,13 @@ for sheet in ability_sheets:
     col_status = df['Status%'].tolist()
     col_statusDur = df['StatusDur'].tolist()
     col_special = df['Special'].tolist()
+    col_notes = df['Notes'].tolist()
 
     zipped=zip(
         col_ability, col_element, col_mode, col_prereqs,col_reqskill, col_level,
         col_weapon, col_sp, col_nrg, col_hit, col_priority, col_damage, col_defense,
-        col_evade, col_short, col_wide, col_status, col_statusDur, col_special
+        col_evade, col_short, col_wide, col_status, col_statusDur, col_special,
+        col_notes
         )
 
     for ability in zipped:
@@ -58,6 +60,7 @@ for sheet in ability_sheets:
             data.update({"status":round(100*ability[16]) if (not pd.isna(ability[16])) else 0})
             data.update({"status-dur":round(ability[17]) if (not pd.isna(ability[17])) else 0})
             data.update({"special":ability[18] if (not pd.isna(ability[18])) else ""})
+            data.update({"notes":ability[19] if (not pd.isna(ability[19])) else ""})
             abilities.update({ability[0]: data})
 
 
@@ -82,6 +85,7 @@ data.update({"wide":0})
 data.update({"status":0})
 data.update({"status-dur":0})
 data.update({"special":""})
+data.update({"notes":"The most basic of combat techniques."})
 abilities.update({"Attack":data})
 
 # output

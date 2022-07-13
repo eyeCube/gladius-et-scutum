@@ -32,14 +32,10 @@ def act_forfeit():
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, pc):
         self.locked=False   # used to lock out player input
         
-        self.pc=PlayerCharacter(
-            name="Jaen", 
-            favorite_element=ELEM_AIR,
-            weapon=0
-            ) # temporary auto-populated test data
+        self.pc=pc
         self.pc_level = 1
 
         # tech registry stack
@@ -57,8 +53,8 @@ class Game:
             )
         self.menu_add("menu_main", mainMenu)
         ui.Button(mainMenu, name="New Game", x1=0,y1=0,width=128,height=32, action=self.test)
-        ui.Button(mainMenu, name="Load", x1=0,y1=32,width=128,height=32, action=self.test)
-        ui.Button(mainMenu, name="Quit", x1=0,y1=64,width=128,height=32, action=self.test)
+        ui.Button(mainMenu, name="Load", x1=0,y1=1*32,width=128,height=32, action=self.test)
+        ui.Button(mainMenu, name="Quit", x1=0,y1=2*32,width=128,height=32, action=self.test)
 
         self.menu_switch_focus("menu_main")
 
@@ -115,21 +111,21 @@ class Game:
         self.menu_switch_focus("menu_a")
         ui.Button(battleMenu, name="--> Continue", x1=0,y1=0,width=196,height=32,
                   action=self.action_continue, args=[self.battle], hotkey=pygame.K_1)
-            # TODO: make this button say "Rest" if NRG == 3
-        ui.Button(battleMenu, name="Attack", x1=0,y1=32,width=196,height=32,
+            # TODO: make this ^ button say "Rest" if NRG == 3
+        ui.Button(battleMenu, name="Attack", x1=0,y1=1*32,width=196,height=32,
                   action=self.action_attack, args=[], hotkey=pygame.K_2)
-        ui.Button(battleMenu, name="Technique", x1=0,y1=64,width=196,height=32,
+        ui.Button(battleMenu, name="Technique", x1=0,y1=2*32,width=196,height=32,
                   action=self.action_technique, args=[], hotkey=pygame.K_3)
-        ui.Button(battleMenu, name="Study", x1=0,y1=96,width=196,height=32,
+        ui.Button(battleMenu, name="Study", x1=0,y1=3*32,width=196,height=32,
                   action=self.action_study, args=[], hotkey=pygame.K_4)
-        ui.Button(battleMenu, name="Claim Boon", x1=0,y1=128,width=196,height=32,
+        ui.Button(battleMenu, name="Claim Boon", x1=0,y1=4*32,width=196,height=32,
                   action=self.action_boon, args=[], hotkey=pygame.K_5)
-        ui.Button(battleMenu, name="Retrieve Weapon", x1=0,y1=160,width=196,height=32,
+        ui.Button(battleMenu, name="Retrieve Weapon", x1=0,y1=5*32,width=196,height=32,
                   action=self.action_retrieve, args=[], hotkey=pygame.K_6)
-            # TODO: make this button say "Drop Weapon" if weapon is equipped, and do drop function
-        ui.Button(battleMenu, name="Suspend Match", x1=0,y1=192,width=196,height=32,
+            # TODO: make this ^ button say "Drop Weapon" if weapon is equipped, and do drop function
+        ui.Button(battleMenu, name="Suspend Match", x1=0,y1=6*32,width=196,height=32,
                   action=self.action_suspend, args=[], hotkey=pygame.K_7)
-        ui.Button(battleMenu, name="Forfeit", x1=0,y1=224,width=196,height=32,
+        ui.Button(battleMenu, name="Forfeit", x1=0,y1=7*32,width=196,height=32,
                   action=self.action_forfeit, args=[], hotkey=pygame.K_8)
 
     # level B menus #
@@ -144,14 +140,14 @@ class Game:
         self.menu_switch_focus("menu_b")
         self.menu_remove("menu_c")
         self.menu_remove("menu_d")
-        ui.Button(techTypeMenu, name="Water", x1=0,y1=0,width=196,height=32,
-                  action=self.create_level_menu, args=["water"], hotkey=pygame.K_1)
-        ui.Button(techTypeMenu, name="Air", x1=0,y1=32,width=196,height=32,
-                  action=self.create_level_menu, args=["air"], hotkey=pygame.K_2)
-        ui.Button(techTypeMenu, name="Earth", x1=0,y1=64,width=196,height=32,
-                  action=self.create_level_menu, args=["earth"], hotkey=pygame.K_3)
-        ui.Button(techTypeMenu, name="Fire", x1=0,y1=96,width=196,height=32,
-                  action=self.create_level_menu, args=["fire"], hotkey=pygame.K_4)
+        ui.Button(techTypeMenu, name="Fire", x1=0,y1=0,width=196,height=32,
+                  action=self.create_level_menu, args=["fire"], hotkey=pygame.K_1)
+        ui.Button(techTypeMenu, name="Earth", x1=0,y1=1*32,width=196,height=32,
+                  action=self.create_level_menu, args=["earth"], hotkey=pygame.K_2)
+        ui.Button(techTypeMenu, name="Air", x1=0,y1=2*32,width=196,height=32,
+                  action=self.create_level_menu, args=["air"], hotkey=pygame.K_3)
+        ui.Button(techTypeMenu, name="Water", x1=0,y1=3*32,width=196,height=32,
+                  action=self.create_level_menu, args=["water"], hotkey=pygame.K_4)
 
     # level C menus #
     
@@ -185,11 +181,13 @@ class Game:
         self.menu_add("menu_d", techMenu)
         self.menu_switch_focus("menu_d")
         # add each known technique that matches the element / level
+        i=0
         for tech in self.pc.techs.techniques[element][level]:
             ui.Button(
-                techMenu, name=tech, x1=0,y1=0, width=196,height=32,
+                techMenu, name=tech, x1=0,y1=32*i, width=196,height=32,
                 action=self.register_tech, args=tech
                 )
+            i+=1
 
     # actions #
     
@@ -425,9 +423,6 @@ class Battle:
             elif playerName=="NPC":
                 player=self.npc
                 target=self.pc
-                
-            disarm = 0
-            pierce = 0
 
             element = movedata['element']
             movename = movedata['name']
@@ -452,28 +447,47 @@ class Battle:
 
             print("{} used {}!".format(playerName, movename))
 
-            if (mode!="both" and self.mode!=mode):
+            # decrement the countdown status timers counted by number of actions
+            player.stats.decrement_status_counters()
+
+            # go through possible failure states for the technique
+            failed = False
+            if ("Stunned" in player.stats.buffs.keys() and random.random()*100 < 25):
+                print("In a daze; the attack fails!")
+                failed=True
+            elif (mode!="both" and self.mode!=mode):
                 print("    It failed!")
-            elif (1+int(random.random()*100)) > tohit: # miss
+                failed=True
+            elif random.random()*100 >= tohit: # miss
                 print("    It missed!")
-            else: # hit
+                failed=True
+                
+            if not failed: # hit
 
                 # apply special effects for the technique (from "Special" column)
-                damage,pierce,disarm = self.apply_special(player, target, movename, damage)
+                damage, pierce, disarm, destroy = self.apply_special(
+                    player, target, movename, damage
+                    )
 
                 # standard status effect from element (burning, softened, hypoxic, stunned)
-                if (1+int(random.random()*100)) <= status:
-                    if element=="F": # Fire
-                        target.stats.accumulate_status("Burning", statusDur)
-                    elif element=="W": # Water
-                        target.stats.accumulate_status("Softened", statusDur)
-                    elif element=="A": # Air
-                        target.stats.accumulate_status("Hypoxic", statusDur)
-                    elif element=="E": # Earth
-                        target.stats.accumulate_status("Stunned", statusDur)
+                if status > 0:
+                    
+                    # increased chance of causing status from elemental mastery
+                                # 10%->55%, 60%->80%, 90%->95%, etc.
+                                # 0% -> 0%: mastery does not add status effects to techs
+                    for e in ['F','E','W','A']:
+                        if (element==e and player.techs.mastery[e]["status"]):
+                            status = round(status + (100-status)//2)
+                            
+                    if (1+int(random.random()*100)) <= status:
+                        for e in ['F','E','W','A']:
+                            if element==e:
+                                statusType = ELEMENTS[e]['status']
+                                target.stats.accumulate_status(statusType, statusDur)
+                
                 
                 # apply pierce by reducing defense of the target, down to a minimum of 0.
-                # If the target already has below 0 defense, no change is made.
+                # If the target has below 0 defense, no change is made.
                 targetDfn = max(
                     min(0,target.stats.get("dfn")),
                     target.stats.get("dfn") - pierce
@@ -483,34 +497,45 @@ class Battle:
 
                 # deal damage
                 target.stats.harm_hp(actual_dmg)
-
-                # attempt disarm based on disarm stat (TODO)
-                if random.random()*100 < disarm:
-                    target.stats.disarm() # TODO func body
-                    print("Disarmed {}".format(target.name))
+                
+                # attempt to disarm or destroy weapon based on disarm/destroy stats
+                if WEAPONS[self.weapon].get("destroy"): # first, apply buff to destroy stat
+                    destroy = round(destroy + (100-destroy)*(WEAPONS[self.weapon]["destroy"]/100))
+                if (destroy and random.random()*100 < destroy):
+                    target.stats.destroy_weapon() # TODO func body
+                    print("Destroyed weapon of {}".format(target.name))
+                else: # only attempt disarm if destroy fails
+                    if WEAPONS[self.weapon].get("disarm"): # first, apply buff to disarm stat
+                        disarm = round(disarm + (100-disarm)*(WEAPONS[self.weapon]["disarm"]/100))
+                    # attempt disarm based on disarm stat
+                    if (disarm and random.random()*100 < disarm):
+                        target.stats.disarm() # TODO func body
+                        print("Disarmed {}".format(target.name))
 
                 # attempt to go wide or short as the technique may call for
                 if (self.mode=="wide" and random.random()*100 < short):
                     self.mode="short"
+                    player.move_short()
+                    target.move_short()
                     print("Moved short")
                 elif (self.mode=="short" and random.random()*100 < wide):
                     self.mode="wide"
+                    player.move_wide()
+                    target.move_wide()
                     print("Moved wide")
 
                 # interrupt rest
                 if target.resting:
                     target.rest_interrupted=True
-
-            # countdown status timers
-            player.stats.decrement_status_counters()
         # end for
     # end def
 
     def apply_special(self, player, target, movename, damage):
         #       special technique status buffs      #
 
-        pierce = 0
+        pierce = player.stats.get("pierce")
         disarm = 0
+        destroy = 0 # destroy weapon
                 
                     # ~~~ AIR ~~~ 
         if movename == "Pillow of Winds":
@@ -542,11 +567,17 @@ class Battle:
             
                     # ~~~ WATER ~~~ 
         elif movename == "Grab Weapon":
-            disarm = 33
+            disarm = 40
         elif movename == "Slippery Skin":
             player.stats.add_status("Slippery Skin",3)
         elif movename == "Acid Rain":
-            pierce += 1
+            value = 67 if player.techs.mastery["water"]["status"] else 33
+            if random.random()*100 < value:
+                target.stats.accumulate_status("Toxic",2)
+        elif movename == "Dissolve":
+            value = 67 if player.techs.mastery["water"]["status"] else 33
+            if random.random()*100 < value:
+                target.stats.accumulate_status("Toxic",3)
         elif movename == "Jet Stream":
             if self.mode=="short":
                 pierce += 1
@@ -566,7 +597,9 @@ class Battle:
             pierce += 2
         elif movename == "Frostbite":
             if random.random()*100 < 50:
-                player.stats.accumulate_status("Burning", 6)
+                target.stats.accumulate_status("Burning", 6)
+        elif movename == "Tentacle":
+            target.stats.accumulate_status("Prevent Movement", 3)
         
                     # ~~~ FIRE ~~~ 
         elif movename == "Singe":
@@ -585,7 +618,7 @@ class Battle:
             if random.random()*100 < 90:
                 player.stats.accumulate_status("Hypoxic", 3)
         elif movename == "Conduction":
-            disarm = 100
+            disarm = 90
         
                     # ~~~ EARTH ~~~ 
         elif movename == "Harden":
@@ -611,12 +644,19 @@ class Battle:
             pierce += 1
         elif movename == "Lockdown":
             target.stats.add_status("Prevent Movement", 3)
+        elif movename == "Solid Guard":
+            target.stats.add_status("Prevent Movement", 3)
+        elif movename == "Leverage Weapon":
+            target.stats.add_status("Prevent Movement", 3)
+        elif movename == "Shatter Weapon":
+            destroy = 50
+            disarm = 100
         elif movename == "Suppressing Sands":
             player.stats.clear_status()
         elif movename == "Grounding":
             player.stats.purify()
 
-        return (damage, pierce, disarm,)
+        return (damage, pierce, disarm, destroy)
 
 
     def upkeep(self, player):
@@ -624,6 +664,10 @@ class Battle:
             player.heal_hp(1)
         if "Mana Rain" in player.stats.buffs.keys():
             player.heal_sp(1)
+        if "Burning" in player.stats.buffs.keys():
+            player.harm_hp(1)
+        if "Toxic" in player.stats.buffs.keys():
+            player.harm_hp(1)
         
         player.stats.decrement_turn_timers()
         
@@ -631,14 +675,14 @@ class Battle:
 
 
 class Combatant_Stats:
-    def __init__(self, owner=None, weapon=0):
+    def __init__(self, owner=None, weapon=0, favorite_weapon=0):
         self.owner=owner
         self.weapon=weapon
+        self.favorite_weapon=favorite_weapon
         self.lost_weapon=0
         
         self.update_needed = True
         self.buffs={}
-        self.mode="wide"
 
         self.body=12        # -> HP
         self.spirit=12      # -> SP
@@ -678,7 +722,7 @@ class Combatant_Stats:
         self.dfn_buff=0
         
         self.dmg=0
-        self.dmg_base=1     # +1 damage to keep things interesting and moving
+        self.dmg_base=1         # start at 1 to make combat more interesting and brutal
         self.dmg_short=0
         self.dmg_short_base=0
         self.dmg_wide=0
@@ -742,6 +786,8 @@ class Combatant_Stats:
             del self.buffs["Hypoxic"]
         elif "Stunned" in keys:
             del self.buffs["Stunned"]
+        elif "Toxic" in keys:
+            del self.buffs["Toxic"]
         self.update_needed = True
 
     def clear_status(self): # clear ALL status effects, good and bad
@@ -759,15 +805,18 @@ class Combatant_Stats:
     def add_status(self, status, duration):
         self.buffs.update({status : duration})
         self.update_needed = True
+        print("Added status to {}: {} for {}".format(self.owner.name, status, statusDur))
     def remove_status(self, status):
         del self.buffs[status]
         self.update_needed = True
+        print("Removed status from {}: {} for {}".format(self.owner.name, status, statusDur))
     def accumulate_status(self, status, duration):
         # add the status if it doesn't exist, or if it does, add to the duration.
         if status in self.buffs.keys():
             self.buffs.update({status : self.buffs[status] + duration})
         else:
             self.add_status(status, duration)
+        print("Accumulated status to {}: {} for {}".format(self.owner.name, status, statusDur))
 
     def decrement_status_counters(self):
         # Status effects that last for a set number of ACTIONS
@@ -783,7 +832,7 @@ class Combatant_Stats:
         # Status effects that last for a set number of TURNS
 
         tlist=["Harden", "Wall of Clay", "Pillow of Winds", "Double Image",
-               "Slippery Skin", "Liquefy", "Heal", "Mana Rain"
+               "Slippery Skin", "Liquefy", "Heal", "Mana Rain", "Toxic"
                ]
         self._decrement_statuses(tlist)
     # end def
@@ -864,8 +913,14 @@ class Combatant_Stats:
         self.dmg += WEAPONS[self.weapon].get("damage", 0)
         self.dmg_wide += WEAPONS[self.weapon].get("wide damage", 0)
         self.dmg_short += WEAPONS[self.weapon].get("short damage", 0)
-        
-        self.pierce += WEAPONS[self.weapon].get("pierce", 0)
+
+        # set because there is no base value for pierce
+        self.pierce = WEAPONS[self.weapon].get("pierce", 0)
+        print(self.pierce)
+
+        # favorite weapon bonus
+        if self.weapon == self.favorite_weapon:
+            self.acc += 5
         
             #~~~~~~~~~~~~~~~~~~~~~~~~~#
             #    update from buffs    #
@@ -876,25 +931,6 @@ class Combatant_Stats:
         self.eva += self.eva_buff
         self.dfn += self.dfn_buff
         self.dmg += self.dmg_buff
-            
-        
-            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-            #    update from battle position    #
-            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-        if self.mode=="wide":
-            self.spd += self.spd_wide
-            self.acc += self.acc_wide
-            self.eva += self.eva_wide
-            self.dmg += self.dmg_wide
-            self.dfn += self.dfn_wide
-        elif self.mode=="short":
-            self.spd += self.spd_short
-            self.acc += self.acc_short
-            self.eva += self.eva_short
-            self.dmg += self.dmg_short
-            self.dfn += self.dfn_short
-            
         
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
             #     update from ability buffs     #
@@ -904,7 +940,7 @@ class Combatant_Stats:
             if k=="Harden":
                 self.dfn += 1
             elif k=="Wall of Clay":
-                self.eva += 5
+                self.eva_wide += 5
             elif k=="Pillow of Winds":
                 self.eva += 5
             elif k=="Double Image":
@@ -928,6 +964,27 @@ class Combatant_Stats:
             elif k=="Grasshopper":
                 self.spd += 1
         # end for
+            
+        
+            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+            #    update from battle position    #
+            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+            # AFTER all changes to wide/short stats have been made
+
+        if self.owner.mode=="wide":
+            self.spd += self.spd_wide
+            self.acc += self.acc_wide
+            self.eva += self.eva_wide
+            self.dmg += self.dmg_wide
+            self.dfn += self.dfn_wide
+        elif self.owner.mode=="short":
+            self.spd += self.spd_short
+            self.acc += self.acc_short
+            self.eva += self.eva_short
+            self.dmg += self.dmg_short
+            self.dfn += self.dfn_short
+            
     # end def
         
 # end class
@@ -938,9 +995,15 @@ class Combatant_Techniques:
         self.techniques={ "fire":{}, "earth":{}, "air":{}, "water":{} }
         # example: {"fire": {1: ["Firebolt",],},
         self.favorite_element=favorite_element
+        self.mastery={
+            "F":{"hit":0, "status":False},
+            "E":{"hit":0, "status":False},
+            "A":{"hit":0, "status":False},
+            "W":{"hit":0, "status":False},
+            }
 
     def add_tech(self, tech):
-        element = ELEMENTS[TECHNIQUES[tech]['element']]
+        element = ELEMENTS[TECHNIQUES[tech]['element']]['name']
         level = TECHNIQUES[tech]['level']
         if self.techniques[element].get(level):
             self.techniques[element][level].append(tech)
@@ -948,7 +1011,7 @@ class Combatant_Techniques:
             self.techniques[element].update({level: [tech]})
 
     def remove_tech(self, tech):
-        element = ELEMENTS[TECHNIQUES[tech]['element']]
+        element = ELEMENTS[TECHNIQUES[tech]['element']]['name']
         level = TECHNIQUES[tech]['level']
         try:
             self.techniques[element][level].remove(tech)
@@ -958,38 +1021,118 @@ class Combatant_Techniques:
     def learn_tech(self, owner, tech):
         data = TECHNIQUES[tech]
         reqSkill = data["req-skill"]
-        if ELEMENTS[data["element"]]==self.favorite_element:
+        if ELEMENTS[data["element"]]['name']==self.favorite_element:
             reqSkill -= 2
         if owner.stats.skill >= reqSkill:
             self.add_tech(tech)
             return True
         return False
+
+    def draw_terse(self, surface, x,y, tech): # show brief info as it appears in lists
+        pass
+
+    def draw_details(self, surface, x,y, tech, show_reqs=True): # show detailed information for technique
+        font = pygame.font.SysFont("consolas", 18)
+        data = TECHNIQUES[tech]
+        
+        if show_reqs:
+            reqs='''
+    Req. Techs: {reqs}
+    Req. Skill: {skill}'''.format(reqs=data['pre-reqs'], skill=data['req-skill'])
+        else:
+            reqs=""
+
+        spec='''
+{hit}{dmg}{dfn}{eva}{short}{wide}{status}{statusDur}{special}{desc}'''.format(
+    hit="    Hit: {}%\n".format(data['hit']) if data['hit']>0 else "",
+    dmg="    DMG: {}\n".format(data['damage']) if data['damage']>0 else "",
+    dfn="    DFN: {}\n".format(data['defense']) if data['defense']>0 else "",
+    eva="    EVA: {}\n".format(data['evasion']) if data['evasion']>0 else "",
+    short="    {}% chance to move Short\n".format(data['short']) if data['short']>0 else "",
+    wide="    {}% chance to move Wide\n".format(data['wide']) if data['wide']>0 else "",
+    status="    {}% chance target is {} for {} actions\n".format(
+        data['status'], ELEMENTS[data['element']['status'], data['statusDur']
+        ) if data['status']>0 else "",
+    special="    Special: {}\n".format(data['special']) if data['special'] else "",
+    desc="    {}\n".format(data['notes']) if data['notes'] else ""
+)
+            
+        text = font.render(
+            '''{name}
+    L{lv} {elem} tech | {mode}{reqs}
+    Weapon: {wpn}
+    SP: {sp}
+    NRG: {nrg}
+    Priority: {priority}{spec}'''.format(
+    name=data['name'], elem=ELEMENTS[data['element']], lv=data['level'],
+    mode=data['mode'], reqs=reqs, wpn=data['weapon'],
+    sp=data['sp'], nrg=data['nrg'],
+    spec=spec,
+    priority=data['priority']
+),
+            True, BLACK
+            )
+        
+        surface.blit(text, (x,y,))
 # end class
         
 
     
 class PlayerCharacter: # class PC class and non-player character NonPlayerCharacter
-    def __init__(self, name="", favorite_element=0, weapon=0):
-        self.stats = Combatant_Stats(owner=self, weapon=weapon)
+    def __init__(self, name="", favorite_element=0, weapon=0, pc=False, sprite=None):
+        self.stats = Combatant_Stats(owner=self, weapon=weapon, favorite_weapon=weapon)
         self.techs = Combatant_Techniques(favorite_element)
         self.name = name
+        self.pc=pc
+        self.sprite=sprite
+        self.mode = "wide"
         self.resting = False
         self.rest_interrupted = False
-        self.stale_moves = 0            # counter for doing the same move x times in a row
-                                        # reduce accuracy proportional to this value
-     
-    
+        self.stale_moves = 0        # counter for doing the same move x times in a row
+                                    # reduce accuracy proportional to this value
+        
+    def move_wide(self):
+        self.mode = "wide"
+        self.stats.update_needed=True
+    def move_short(self):
+        self.mode = "short"
+        self.stats.update_needed=True
+
+    def update_sprite(self):
+        # TODO: call this when updating weapon / disarming / rearming etc.
+        if self.pc:
+            self.sprite = PC_WEAPON_SPRITES[self.weapon]
+
+    def draw(self, surface):
+        if self.sprite==None:
+            print("self.sprite value for player with name '{}' is None.".format(self.name))
+            return
+        
+        ypos=300
+        if self.pc:
+            xpos=200
+        else:
+            xpos=WIDTH-200
+
+        # draw the sprite
+        surface.blit(self.sprite, (xpos,ypos,))
+# end class
 
 
 if __name__=="__main__":
 
-    game = Game()
-    pc = game.pc
+    pc = PlayerCharacter(
+            name="Jaen", 
+            favorite_element=ELEM_AIR,
+            weapon=WPN_SLING,
+            pc=True
+            ) # temporary auto-populated test data
+    game = Game(pc)
     
     npc=PlayerCharacter(
         name="Bob",
         favorite_element=ELEM_FIRE,
-        weapon=WPN_NONE
+        weapon=WPN_HAMSHIELD
         ) #temporary
 
     pc.stats.calculate_stats()
@@ -1005,19 +1148,6 @@ if __name__=="__main__":
         game.run()
     
     
-
-##    
-##    menu.add.button('Technique', act_technique)
-##    menu.add.button('Claim Boon', act_boon)
-##    menu.add.button('Retrieve Weapon', act_retrieve)
-##    menu.add.button('Rest', act_rest)
-##    menu.add.button('Suspend', act_suspend)
-##    menu.add.button('Forfeit', act_forfeit)
-##    menu.add.button('Quit Game', pygame_menu.events.EXIT)
-##    
-##    menu.mainloop(SURFACE)
-
-
 
 
 
