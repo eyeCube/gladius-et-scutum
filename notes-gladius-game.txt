@@ -6,6 +6,47 @@ The setting is in Bronze Age Rome in the Coliseum, and you are a gladiator fight
 
 
 
+STORY
+	You are a savant with a gift for combat tactics and judging your opponent's abilities. You are a slave.
+	
+	Captive and forced to compete in a series of increasingly brutal gladatorial challenges, you fight to survive.
+	
+	While fighting your way up the ranks in the Coliseum, you are ambushed by a rival team outside of the ring. In this fight, there are no rules, and the loser will die.
+	
+	Surviving to the top ranks, you begin your career as a top-tier entertainer, fighting in several ridiculous scenarios for the amusement of the rich onlookers. 
+	
+	Your career is cut short when a rich businessman begins interfering and making the challenges very difficult. This comes to a head with a direct confrontation with the businessman outside of the ring.
+	
+	This has the feel of a scripted loss, because it's very difficult, and he says that if you fight back, he will end you (and he will).
+	
+	If you take the loss, he captures you and brings you far away to another land. This is the Bad Ending.
+	
+	If you defeat him in combat, you are ended by his partners, but you go on to become a Legend of the Coliseum, and a martyr for the rights of slaves, leading to a revolution. This is the Good Ending.
+	
+	
+	
+MAX TECHS per level: 10
+	max combat techs: 9
+	1-3 passive techs per level
+	
+	
+STANCE
+	Depending on which element the technique you last used was, you gain the benefits and drawbacks of that stance:
+		Fire
+			Hit +5%
+			Water techniques do +1 damage to you
+		Earth
+			Short EVA +5%
+			Fire techniques do +1 damage to you
+		Air
+			SPD +1
+			Earth techniques do +1 damage to you
+		Water
+			Wide EVA +5%
+			Air techniques do +1 damage to you
+
+
+
 
 You can gain Boons which allow you to do something during combat that would normally be illegal (acquiring a temporary weapon, getting a temporary helper combatant, taking a break and healing, using some drugs or eating food (using an item basically), getting a free hit on the enemy, getting to reset your positions to the start of the fight, etc.). These are effectively one-time use "items" that you can call on at any point during the battle. You gain these by fulfilling certain randomized requirements during battles.
 
@@ -64,7 +105,9 @@ Combat plays out like this.
 		
 		Forfeit
 			Priority = 3
-			Asks if you're sure, then forfeits the match -- you lose gold for the fight as with failure, and you do not level up. This is a major setback but it's better than straight up losing the fight, because if you lose, you lose gold AND also fall back a level.
+			Asks if you're sure, then forfeits the match -- you lose gold for the fight as with failure, and you do not level up. This is a minor setback but it's far better than being defeated, because if you are defeated, you lose gold, fall back a level, AND receive a permanent injury. You do not lose known skills, skill points, or stats, except for those caused by the injury.
+			Optionally, load game but you are encouraged to attempt to continue the game after such setbacks (although in harder difficulty settings this may not be feasible)
+			Achievements? Achievement for beating game with 0 losses. One for beating game with >=5 losses.
 		
 		
 	Knowledge you have of your opponent before the fight:
@@ -319,30 +362,32 @@ Progression
 		Skill + 1
 	You also get +1 Tech point that you can use to buy a new technique.
 		Techniques cost the amount of Tech points equal to the Level of the technique.
-	* At level 5, you can choose a secondary favorite weapon, gain access to Level 2 techniques, and gain access to a new chosen Element and its tech tree.
+	* At level 5, you can choose an extra favorite weapon, gain access to Level 2 techniques, and gain access to a new chosen Element and its tech tree.
+		The extra favorite weapon grants you the same bonus to accuracy as your primary weapon.
 	* At level 10, you gain access to Level 3 techniques, and gain access to a new chosen Element and its tech tree. You can also choose to get a permanent boost to a secondary attribute:
 		Short Accuracy +5%
 		Wide Accuracy +5%
 		Evasion +5%
 		Fire Resistance +10% 
-			(Evasion +10% when attacked with Fire element, and chance to receive Burning status effect is reduced by 10 so e.g. a 33% chance would become 23%.)
+			(Evasion +10% when attacked with Fire element, and chance to receive Burning status effect is reduced by half rounded down, so e.g. a 33% chance would become 16%.)
 		Earth Resistance +10%
 		Water Resistance +10%
 		Air Resistance +10%
 	* At level 15, you gain access to Level 4 techniques, and gain access to a new chosen Element and its tech tree. You have become adept in your chosen style of combat, and can choose to get a permanent boost to a secondary attribute:
 		Wide Speed +1
 		Short Speed +1
-	* At level 20, you have mastered your style of combat, and can get another permanent boost to a secondary attribute:
+	* At level 20, you have mastered your style of combat, and can get a permanent boost to a secondary attribute:
 		Wide Dmg +1
 		Short Dmg +1
 		Def +1
-	* At level 25, you become a master of the elements, and can combine two elements into one attack, gaining access to signature techniques. Only 1 style may be selected and one of the elements in the style chosen must be your favored element. You will gain 1 Wide and 1 Short technique combining the elements from the chosen style.
+	* At level 25, you have mastered the elements, and can combine two elements into one attack, gaining access to signature level 5 techniques. Only 1 style may be selected and one of the elements in the style chosen must be your favored element. You will gain access to 1 Wide and 1 Short L5 techniques combining the elements from the chosen style. This is a unique set of moves that only your character knows, and that you create with the help of your coach.
 		Air + Fire: Inferno Style
 		Air + Earth: Poison Style
 		Air + Water: Blizzard Style
 		Fire + Earth: Volcano Style
 		Fire + Water: Boil Style
 		Earth + Water: Wood Style
+	* At level 30, you have 
 	
 	
 Failure and Game Over state
@@ -378,3 +423,15 @@ MENU
 		
 		
 	
+90
+5
+
+80
+10
+
+x + (100-x)/2
+
+
+
+
+Enemies

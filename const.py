@@ -22,44 +22,59 @@ WHITE   = (255,255,255,)
     #        SPRITES        #
     #-----------------------#
 
-SPR_PLAYER_UNARMED = pygame.image.load('player-unarmed.png')
-SPR_PLAYER_JAVSHIELD = pygame.image.load('player-javelin-shield.png')
-SPR_PLAYER_AXESHIELD = pygame.image.load('player-axe-shield.png')
-SPR_PLAYER_HAMSHIELD = pygame.image.load('player-hammer-shield.png')
-SPR_PLAYER_SWOBUCKLER = pygame.image.load('player-sword-buckler.png')
-SPR_PLAYER_CHAKRAM = pygame.image.load('player-chakram.png')
-SPR_PLAYER_WHIPROPE = pygame.image.load('player-whipe-rope.png')
-SPR_PLAYER_POLE = pygame.image.load('player-pole.png')
-SPR_PLAYER_SPEAR = pygame.image.load('player-spear.png')
-SPR_PLAYER_NET = pygame.image.load('player-net.png')
-SPR_PLAYER_SLING = pygame.image.load('player-sling.png')
+SPR_PLAYER_UNARMED = pygame.image.load('sprites/player-unarmed.png')
+SPR_PLAYER_JAVSHIELD = pygame.image.load('sprites/player-javelin-shield.png')
+SPR_PLAYER_AXESHIELD = pygame.image.load('sprites/player-axe-shield.png')
+SPR_PLAYER_HAMSHIELD = pygame.image.load('sprites/player-hammer-shield.png')
+SPR_PLAYER_SWOBUCKLER = pygame.image.load('sprites/player-sword-buckler.png')
+SPR_PLAYER_CHAKRAM = pygame.image.load('sprites/player-chakram.png')
+SPR_PLAYER_WHIPROPE = pygame.image.load('sprites/player-whip-rope.png')
+SPR_PLAYER_POLE = pygame.image.load('sprites/player-pole.png')
+SPR_PLAYER_SPEAR = pygame.image.load('sprites/player-spear.png')
+SPR_PLAYER_NET = pygame.image.load('sprites/player-net.png')
+SPR_PLAYER_SLING = pygame.image.load('sprites/player-sling.png')
 
 
 
+    
     #-----------------------#
     #       ELEMENTS        #
     #-----------------------#
 
-ELEM_AIR    =0
-ELEM_WATER  =1
-ELEM_FIRE   =2
-ELEM_EARTH  =3
+ELEM_FIRE   =0
+ELEM_EARTH  =1
+ELEM_AIR    =2
+ELEM_WATER  =3
+
+STANCE_NONE = 0
+STANCE_FIRE = 1
+STANCE_EARTH = 2
+STANCE_AIR = 3
+STANCE_WATER = 4
 
 ELEMENTS={
-    "F":{'name':'fire', 'status':'Burning'},
-    "E":{'name':'earth', 'status':'Stunned'},
-    "A":{'name':'air', 'status':'Hypoxic'},
-    "W":{'name':'water', 'status':'Softened'},
+    "":{'name':'','status':'', 'stance':0},
+    "F":{'name':'fire', 'status':'Burning', 'stance':STANCE_FIRE,},
+    "E":{'name':'earth', 'status':'Stunned', 'stance':STANCE_EARTH,},
+    "A":{'name':'air', 'status':'Hypoxic', 'stance':STANCE_AIR,},
+    "W":{'name':'water', 'status':'Softened', 'stance':STANCE_WATER,},
+    ELEM_FIRE:"F",
+    ELEM_AIR:"A",
+    ELEM_EARTH:"E",
+    ELEM_WATER:"W",
+    STANCE_FIRE:"F",
+    STANCE_AIR:"A",
+    STANCE_EARTH:"E",
+    STANCE_WATER:"W",
     }
 
-'''
-    Element      Status
-    ----------------------
-    Air          Hypoxic
-    Water        Softened
-    Earth        Stunned
-    Fire         Burning
-'''
+STANCES={
+    STANCE_NONE : {'name':'Neutral', 'weakness':-1},
+    STANCE_FIRE : {'name':'Fire', 'weakness':ELEM_WATER},
+    STANCE_EARTH : {'name':'Earth', 'weakness':ELEM_FIRE},
+    STANCE_AIR : {'name':'Air', 'weakness':ELEM_EARTH},
+    STANCE_WATER : {'name':'Water', 'weakness':ELEM_AIR},
+}
 
 
 
@@ -70,19 +85,19 @@ ELEMENTS={
 WPN_NONE        =0
 WPN_JAVSHIELD   =1
 WPN_HAMSHIELD   =2
-WPN_SWOBUCKLER  =3
-WPN_AXESHIELD   =4
+WPN_AXESHIELD   =3
+WPN_SWOBUCKLER  =4
 WPN_WHIPROPE    =5
 WPN_CHAKRAM     =6
-WPN_SPEAR       =7
-WPN_POLE        =8
-WPN_NET         =9
-WPN_SLING       =10
+WPN_POLE        =7
+WPN_NET         =8
+WPN_SLING       =9
+WPN_SPEAR       =10
+WPN_GREATSWORD  =11
 
 WEAPONS={
     WPN_NONE:{
         "name":"Unarmed",
-        'sp':8,
     },
     WPN_JAVSHIELD:{
         "name":"Javelin & Shield",
@@ -90,16 +105,25 @@ WEAPONS={
         "to-hit":5,
         "evasion":12,
         "defense":2,
-        "sp":2,         # Extra maximum SP
+        "sp_max":-6,         # Extra maximum SP
     },
     WPN_HAMSHIELD:{
         "name":"Hammer & Shield",
-        "short damage":1,
-        "pierce":1,
-        "destroy":50, # chance to fail destroy weapon cut by 50%
+        "pierce":2,
         "evasion":6,
         "defense":1,
-        "sp":4,
+        "sp_max":-4,
+        "destroy":50, # chance to fail destroy weapon cut by 50%
+    },
+    WPN_AXESHIELD:{
+        "name":"Axe & Shield",
+        "short speed":2,
+        "short to-hit":5,
+        "evasion":8,
+        "damage":1,
+        "defense":1,
+        "sp_max":-4,
+        "disarm":50, # chance to fail disarm cut by 50%
     },
     WPN_SWOBUCKLER:{
         "name":"Sword & Buckler",
@@ -108,17 +132,7 @@ WEAPONS={
         "short damage":1,
         "evasion":10,
         "defense":1,
-        "sp":4,
-    },
-    WPN_AXESHIELD:{
-        "name":"Axe & Shield",
-        "short speed":2,
-        "short to-hit":5,
-        "evasion":8,
-        "damage":1,
-        "disarm":50, # chance to fail disarm cut by 50%
-        "defense":1,
-        "sp":4,
+        "sp_max":-4,
     },
     WPN_WHIPROPE:{
         "name":"Whip & Rope",
@@ -126,7 +140,6 @@ WEAPONS={
         "to-hit":5,
         "short damage":2,
         "evasion":4,
-        "sp":6,
     },
     WPN_CHAKRAM:{
         "name":"Chakram",
@@ -135,7 +148,7 @@ WEAPONS={
         "wide damage":1,
         "evasion":12,
         "defense":1,
-        "sp":4,
+        "sp_max":-2,
     },
     WPN_POLE:{
         "name":"Pole",
@@ -144,14 +157,15 @@ WEAPONS={
         "wide damage":1,
         "evasion":6,
         "defense":2,
+        "sp_max":-6,
     },
     WPN_NET:{
-        "name":"Net",
+        "name":"Weighted Net",
         "wide speed":3,
         "wide to-hit":20,
         "wide damage":1,
-        "evasion":4,
-        "sp":6,
+        "evasion":6,
+        "sp_max":-2,
     },
     WPN_SLING:{
         "name":"Sling",
@@ -159,31 +173,32 @@ WEAPONS={
         "wide to-hit":5,
         "wide damage":2,
         "evasion":4,
-        "sp":6,
+        "sp_max":-2,
     },
     WPN_SPEAR:{
-        "boon":True,
+        "boon":True,        # only accessible from one-time use boons
         "name":"Spear",
         "wide speed":2,
         "wide to-hit":10,
         "wide damage":2,
         "evasion":12,
         "defense":2,
+        "sp_max":-8,
     },
-    WPN_KRISCUTUM:{
-        "boon":True,
-        "name":"Kris & Scutum",
+    WPN_GREATSWORD:{
+        "boon":True,        # only accessible from one-time use boons
+        "name":"Great Sword & Scutum",
         "short speed":2,
         "short to-hit":10,
         "short damage":2,
         "evasion":12,
         "defense":2,
-        'sp':6,
+        "sp_max":-8,
     }
 }
 
 PC_WEAPON_SPRITES={
-    WPN_UNARMED : SPR_PLAYER_UNARMED,
+    WPN_NONE : SPR_PLAYER_UNARMED,
     WPN_JAVSHIELD : SPR_PLAYER_JAVSHIELD,
     WPN_AXESHIELD : SPR_PLAYER_AXESHIELD,
     WPN_HAMSHIELD : SPR_PLAYER_HAMSHIELD,
@@ -208,7 +223,7 @@ TECHNIQUES={
 'Rocket Punch': {'name': 'Rocket Punch', 'element': 'F', 'mode': 'Wide', 'pre-reqs': '', 'req-skill': 5, 'level': 1, 'weapon': 'Any', 'sp': 2, 'nrg': 2, 'hit': 80, 'priority': 3, 'damage': 2, 'defense': 0, 'evasion': 5, 'short': 33, 'wide': 0, 'status': 0, 'status-dur': 0, 'special': ''},
 'Flame Whip': {'name': 'Flame Whip', 'element': 'F', 'mode': 'Wide', 'pre-reqs': '', 'req-skill': 5, 'level': 1, 'weapon': 'Whip & Rope', 'sp': 1, 'nrg': 2, 'hit': 85, 'priority': -1, 'damage': 1, 'defense': 0, 'evasion': 0, 'short': 75, 'wide': 0, 'status': 50, 'status-dur': 2, 'special': ''},
 'Fire Mastery': {'name': 'Fire Mastery', 'element': 'F', 'mode': 'Passive', 'pre-reqs': '', 'req-skill': 3, 'level': 1, 'weapon': 'Any', 'sp': 0, 'nrg': 0, 'hit': 0, 'priority': 0, 'damage': 0, 'defense': 0, 'evasion': 0, 'short': 0, 'wide': 0, 'status': 0, 'status-dur': 0, 'special': 'Accuracy +5% with all Fire techniques per Skill Point spent'},
-'Burning Net': {'name': 'Burning Net', 'element': 'F', 'mode': 'Wide', 'pre-reqs': '', 'req-skill': 5, 'level': 2, 'weapon': 'Net', 'sp': 3, 'nrg': 2, 'hit': 60, 'priority': -1, 'damage': 2, 'defense': 0, 'evasion': 0, 'short': 90, 'wide': 0, 'status': 33, 'status-dur': 4, 'special': 'Prevents enemy movement for 3 actions'},
+'Burning Net': {'name': 'Burning Net', 'element': 'F', 'mode': 'Wide', 'pre-reqs': '', 'req-skill': 5, 'level': 2, 'weapon': 'Weighted Net', 'sp': 3, 'nrg': 2, 'hit': 60, 'priority': -1, 'damage': 2, 'defense': 0, 'evasion': 0, 'short': 90, 'wide': 0, 'status': 33, 'status-dur': 4, 'special': 'Prevents enemy movement for 3 actions'},
 'Combustion': {'name': 'Combustion', 'element': 'F', 'mode': 'Short', 'pre-reqs': 'Ignition', 'req-skill': 8, 'level': 2, 'weapon': 'Any', 'sp': 2, 'nrg': 3, 'hit': 95, 'priority': 0, 'damage': 2, 'defense': 0, 'evasion': 10, 'short': 0, 'wide': 75, 'status': 0, 'status-dur': 0, 'special': ''},
 'Blue Fire': {'name': 'Blue Fire', 'element': 'F', 'mode': 'Both', 'pre-reqs': 'Firebolt', 'req-skill': 9, 'level': 2, 'weapon': 'Any', 'sp': 3, 'nrg': 2, 'hit': 65, 'priority': 0, 'damage': 4, 'defense': 0, 'evasion': 0, 'short': 0, 'wide': 0, 'status': 33, 'status-dur': 6, 'special': ''},
 'Flamespray': {'name': 'Flamespray', 'element': 'F', 'mode': 'Wide', 'pre-reqs': 'Breath of Fire', 'req-skill': 6, 'level': 2, 'weapon': 'Any', 'sp': 4, 'nrg': 3, 'hit': 95, 'priority': 2, 'damage': 3, 'defense': 0, 'evasion': 5, 'short': 0, 'wide': 0, 'status': 80, 'status-dur': 5, 'special': ''},

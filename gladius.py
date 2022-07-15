@@ -102,6 +102,11 @@ class Game:
     def init_battle(self, battle):
         self.battle=battle
         self._create_battle_menu(battle)
+        # fully heal the combatants
+        battle.pc.stats.heal_sp(9999) 
+        battle.pc.stats.heal_hp(9999)
+        battle.npc.stats.heal_sp(9999)
+        battle.npc.stats.heal_hp(9999)
     def _create_battle_menu(self, battle):
         battleMenu = ui.ButtonGroup(
             SURFACE, name="menu_a", enabled=True,
@@ -120,13 +125,15 @@ class Game:
                   action=self.action_study, args=[], hotkey=pygame.K_4)
         ui.Button(battleMenu, name="Claim Boon", x1=0,y1=4*32,width=196,height=32,
                   action=self.action_boon, args=[], hotkey=pygame.K_5)
-        ui.Button(battleMenu, name="Retrieve Weapon", x1=0,y1=5*32,width=196,height=32,
-                  action=self.action_retrieve, args=[], hotkey=pygame.K_6)
+        ui.Button(battleMenu, name="Taunt", x1=0,y1=5*32,width=196,height=32,
+                  action=self.action_taunt, args=[], hotkey=pygame.K_6)
+        ui.Button(battleMenu, name="Retrieve Weapon", x1=0,y1=6*32,width=196,height=32,
+                  action=self.action_retrieve, args=[], hotkey=pygame.K_7)
             # TODO: make this ^ button say "Drop Weapon" if weapon is equipped, and do drop function
         ui.Button(battleMenu, name="Suspend Match", x1=0,y1=6*32,width=196,height=32,
-                  action=self.action_suspend, args=[], hotkey=pygame.K_7)
+                  action=self.action_suspend, args=[], hotkey=pygame.K_8)
         ui.Button(battleMenu, name="Forfeit", x1=0,y1=7*32,width=196,height=32,
-                  action=self.action_forfeit, args=[], hotkey=pygame.K_8)
+                  action=self.action_forfeit, args=[], hotkey=pygame.K_9)
 
     # level B menus #
     
@@ -205,6 +212,11 @@ class Game:
     def action_boon(self, args):
         print("Boon")
 
+    def action_taunt(self, args):
+        # appeal to crowd, gaining favor from crowd
+            # but also raising ire from your opponent (and their friends)
+        print("Taunt")
+
     def action_retrieve(self, args):
         print("Retrieve")
 
@@ -214,7 +226,7 @@ class Game:
     def action_forfeit(self, args):
         print("Forfeit")
 
-    def action_continue(self, args):
+    def action_continue(self, args): # move to the next turn
         print("Continue")
         # if you don't have any techs or attacks in the stack, you just do rest action
         self.pc.resting = True if not self.stack["PC"] else False
@@ -228,6 +240,8 @@ class Game:
     def _action_rest(self, interrupted):
         print("Rest. Interrupted:",interrupted)
         self.pc.stats.heal_sp(1 if interrupted else 3)
+        self.pc.resting = False
+        self.pc.rest_interrupted = False
         
 
             # tech registry stack #
@@ -238,21 +252,22 @@ class Game:
         # is called for each move in the proper order.
         nrg_cost = TECHNIQUES[tech]["nrg"]
         sp_cost = TECHNIQUES[tech]["sp"]
-        print(self.pc.stats.energy)
         if (self.pc.stats.energy >= nrg_cost and self.pc.stats.sp >= sp_cost):
             print("tech registered:", tech)
             self.stack["PC"].append(tech)
             self.pc.stats.energy -= nrg_cost
-            self.pc.stats.sp -= sp_cost
+            self.pc.stats.harm_sp(sp_cost)
             print(self.pc.stats.energy)
         else:
             print("Insufficient energy and/or sp to use this tech")
+        print("NRG: {} / {}".format(self.pc.stats.energy, sp_cost))
+        print("SP: {} / {}".format(self.pc.stats.sp, sp_cost))
     def register_backspace(self): # remove most recently registered tech
         if self.stack["PC"]:
             print("tech removed")
             tech = self.stack["PC"][-1]
-            self.pc.stats.energy += TECHNIQUES[tech]["nrg"]
-            self.pc.stats.sp += TECHNIQUES[tech]["sp"]
+            self.pc.stats.energy = min(3, self.pc.stats.energy + TECHNIQUES[tech]["nrg"])
+            self.pc.stats.heal_sp(TECHNIQUES[tech]["sp"])
             del self.stack["PC"][-1]
     def register_init(self): # clear registered techs from tech registry stack
         self.stack = {"PC":[], "NPC":[]}
@@ -390,9 +405,9 @@ class Battle:
 
             # temporary buffs (until beginning of next turn) are applied instantly
             if data['defense'] != 0: 
-                self.pc.stats.dfn_buff += dfn 
+                self.pc.stats.dfn_buff += data['defense'] 
             if data['evasion'] != 0:
-                self.pc.stats.eva_buff += eva
+                self.pc.stats.eva_buff += data['evasion']
         # NPC 
         for move in npc_moves:
             data=TECHNIQUES[move]
@@ -424,6 +439,13 @@ class Battle:
                 player=self.npc
                 target=self.pc
 
+            if player.dead:
+                print("{} is defeated.".format(player.name))
+                return
+            elif target.dead:
+                print("{} is defeated.".format(target.name))
+                return
+
             element = movedata['element']
             movename = movedata['name']
             mode = movedata['mode'].lower()
@@ -437,9 +459,6 @@ class Battle:
             wide = movedata['wide'] # chance to move wide
             status = movedata['status']
             statusDur = movedata['status-dur']
-            
-            player.stats.sp -= spcost
-            player.stats.energy -= nrgcost
 
             damage = dmg + player.stats.get("dmg")
             tohit = acc + player.stats.get("acc")
@@ -450,18 +469,24 @@ class Battle:
             # decrement the countdown status timers counted by number of actions
             player.stats.decrement_status_counters()
 
+            # switch stances to the elemental style of the chosen technique
+            player.stats.set_stance(ELEMENTS.get(element,{}).get('stance',0))
+
             # go through possible failure states for the technique
             failed = False
             if ("Stunned" in player.stats.buffs.keys() and random.random()*100 < 25):
                 print("In a daze; the attack fails!")
                 failed=True
+                player.stats.heal_sp(spcost) # recover unused SP
             elif (mode!="both" and self.mode!=mode):
                 print("    It failed!")
                 failed=True
+                player.stats.heal_sp(spcost) # recover unused SP
             elif random.random()*100 >= tohit: # miss
+                # do NOT recover unused SP -- it's lost because you tried but MISSED.
                 print("    It missed!")
                 failed=True
-                
+
             if not failed: # hit
 
                 # apply special effects for the technique (from "Special" column)
@@ -485,6 +510,14 @@ class Battle:
                                 statusType = ELEMENTS[e]['status']
                                 target.stats.accumulate_status(statusType, statusDur)
                 
+
+                # apply extra damage from stance
+                if player.stats.stance == STANCES[target.stats.stance]['weakness']:
+                    damage += 1
+                    print("    It's super effective!")
+                    # TODO: consider limits on damage
+                        # (only up to 1 extra damage per turn OR target stance resets
+                        # after you exploit their weakness.
                 
                 # apply pierce by reducing defense of the target, down to a minimum of 0.
                 # If the target has below 0 defense, no change is made.
@@ -499,30 +532,32 @@ class Battle:
                 target.stats.harm_hp(actual_dmg)
                 
                 # attempt to disarm or destroy weapon based on disarm/destroy stats
-                if WEAPONS[self.weapon].get("destroy"): # first, apply buff to destroy stat
-                    destroy = round(destroy + (100-destroy)*(WEAPONS[self.weapon]["destroy"]/100))
+                # first, apply buff to destroy stat
+                if (destroy > 0 and WEAPONS[player.stats.weapon].get("destroy")):
+                    destroy = round(destroy + (100-destroy)*(WEAPONS[player.stats.weapon]["destroy"]/100))
                 if (destroy and random.random()*100 < destroy):
                     target.stats.destroy_weapon() # TODO func body
-                    print("Destroyed weapon of {}".format(target.name))
+                    print("    Destroyed weapon of {}".format(target.name))
                 else: # only attempt disarm if destroy fails
-                    if WEAPONS[self.weapon].get("disarm"): # first, apply buff to disarm stat
-                        disarm = round(disarm + (100-disarm)*(WEAPONS[self.weapon]["disarm"]/100))
+                    # first, apply buff to disarm stat
+                    if (disarm > 0 and WEAPONS[player.stats.weapon].get("disarm")):
+                        disarm = round(disarm + (100-disarm)*(WEAPONS[player.stats.weapon]["disarm"]/100))
                     # attempt disarm based on disarm stat
                     if (disarm and random.random()*100 < disarm):
                         target.stats.disarm() # TODO func body
-                        print("Disarmed {}".format(target.name))
+                        print("    Disarmed {}".format(target.name))
 
                 # attempt to go wide or short as the technique may call for
                 if (self.mode=="wide" and random.random()*100 < short):
                     self.mode="short"
                     player.move_short()
                     target.move_short()
-                    print("Moved short")
+                    print("    Moved short")
                 elif (self.mode=="short" and random.random()*100 < wide):
                     self.mode="wide"
                     player.move_wide()
                     target.move_wide()
-                    print("Moved wide")
+                    print("    Moved wide")
 
                 # interrupt rest
                 if target.resting:
@@ -564,6 +599,8 @@ class Battle:
             disarm = 75
         elif movename == "Dust Devils":
             target.stats.add_status("Dust Devils", 2)
+        elif movename == "Cloudwalk":
+            player.stats.add_status("Cloudwalk", 6)
             
                     # ~~~ WATER ~~~ 
         elif movename == "Grab Weapon":
@@ -630,9 +667,12 @@ class Battle:
         elif movename == "Constrict":
             pierce += 1
         elif movename == "Armorslayer":
-            pierce += 4
-            if target.stats.get("dfn") <= 0:
-                damage = 1
+            # damage scales with target's Defense stat
+            dfn = target.stats.get("dfn")
+            damage = 1
+            if dfn > 0:
+                damage += dfn
+                pierce += dfn     # pierce through all of the defense
         elif movename == "Vibrohammer":
             if random.random()*100 < 33:
                 player.stats.accumulate_status("Softened", 3)
@@ -642,17 +682,19 @@ class Battle:
             pierce += 2
         elif movename == "Diamond Smash":
             pierce += 1
+            if self.mode=="wide":
+                damage += 1
         elif movename == "Lockdown":
             target.stats.add_status("Prevent Movement", 3)
         elif movename == "Solid Guard":
-            target.stats.add_status("Prevent Movement", 3)
+            player.stats.add_status("Solid Guard", 1) # TODO: implement!
         elif movename == "Leverage Weapon":
-            target.stats.add_status("Prevent Movement", 3)
+            disarm = 100
         elif movename == "Shatter Weapon":
-            destroy = 50
+            destroy = 50 # TODO: implement!
             disarm = 100
         elif movename == "Suppressing Sands":
-            player.stats.clear_status()
+            target.stats.clear_status()
         elif movename == "Grounding":
             player.stats.purify()
 
@@ -661,13 +703,13 @@ class Battle:
 
     def upkeep(self, player):
         if "Heal" in player.stats.buffs.keys():
-            player.heal_hp(1)
+            player.stats.heal_hp(1)
         if "Mana Rain" in player.stats.buffs.keys():
-            player.heal_sp(1)
+            player.stats.heal_sp(1)
         if "Burning" in player.stats.buffs.keys():
-            player.harm_hp(1)
+            player.stats.harm_hp(1)
         if "Toxic" in player.stats.buffs.keys():
-            player.harm_hp(1)
+            player.stats.harm_hp(1)
         
         player.stats.decrement_turn_timers()
         
@@ -680,12 +722,14 @@ class Combatant_Stats:
         self.weapon=weapon
         self.favorite_weapon=favorite_weapon
         self.lost_weapon=0
-        
+        self.stance=0
+
+        self.dead = False
         self.update_needed = True
         self.buffs={}
 
         self.body=12        # -> HP
-        self.spirit=12      # -> SP
+        self.spirit=20      # -> SP
         self.skill=3
         
         self.energy=0
@@ -722,7 +766,10 @@ class Combatant_Stats:
         self.dfn_buff=0
         
         self.dmg=0
-        self.dmg_base=1         # start at 1 to make combat more interesting and brutal
+        self.dmg_base=0
+            # should we start at 1? to make combat more interesting and brutal
+            # or 0 to make it more reliant on tactics and choosing the right tech
+            # for the job?
         self.dmg_short=0
         self.dmg_short_base=0
         self.dmg_wide=0
@@ -756,20 +803,28 @@ class Combatant_Stats:
 
     def heal_hp(self, amount):
         if amount <= 0: return
-        if "Prevent Healing" in player.stats.buffs.keys():
+        if "Prevent Healing" in self.buffs.keys():
             print("{} heal prevented!".format(self.owner.name))
             return
         self.hp = min(self.get("hp_max"), self.hp + amount)
     def harm_hp(self, amount):
         if amount <= 0: return
         self.hp = max(0, self.hp - amount)
-            # check for death and exhaustion in the Battle class' turn() function
+        if self.hp <= 0:
+            self.die()
     def heal_sp(self, amount):
         if amount <= 0: return
         self.sp = min(self.get("sp_max"), self.sp + amount)
     def harm_sp(self, amount):
         if amount <= 0: return
         self.sp = max(0, self.sp - amount)
+
+    def set_stance(self, stance):
+        self.stance=stance
+        self.update_needed=True
+
+    def die(self):
+        self.dead = True
         
     def fill_energy(self):
         self.energy = 3
@@ -805,18 +860,17 @@ class Combatant_Stats:
     def add_status(self, status, duration):
         self.buffs.update({status : duration})
         self.update_needed = True
-        print("Added status to {}: {} for {}".format(self.owner.name, status, statusDur))
+        print("Added status to {}: {} for {}".format(self.owner.name, status, duration))
     def remove_status(self, status):
         del self.buffs[status]
         self.update_needed = True
-        print("Removed status from {}: {} for {}".format(self.owner.name, status, statusDur))
+        print("Removed status from {}: {}".format(self.owner.name, status))
     def accumulate_status(self, status, duration):
         # add the status if it doesn't exist, or if it does, add to the duration.
         if status in self.buffs.keys():
             self.buffs.update({status : self.buffs[status] + duration})
         else:
             self.add_status(status, duration)
-        print("Accumulated status to {}: {} for {}".format(self.owner.name, status, statusDur))
 
     def decrement_status_counters(self):
         # Status effects that last for a set number of ACTIONS
@@ -914,9 +968,10 @@ class Combatant_Stats:
         self.dmg_wide += WEAPONS[self.weapon].get("wide damage", 0)
         self.dmg_short += WEAPONS[self.weapon].get("short damage", 0)
 
-        # set because there is no base value for pierce
+        self.sp_max += WEAPONS[self.weapon].get("sp_max", 0)
+
+        # set instead of add, because there is no base value for pierce
         self.pierce = WEAPONS[self.weapon].get("pierce", 0)
-        print(self.pierce)
 
         # favorite weapon bonus
         if self.weapon == self.favorite_weapon:
@@ -963,7 +1018,24 @@ class Combatant_Stats:
                 self.dmg_short += 1
             elif k=="Grasshopper":
                 self.spd += 1
+            elif k=="Cloudwalk":
+                self.eva_wide += 5
         # end for
+
+        
+        
+            #~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+            #    update from stance     #
+            #~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+        if self.stance==STANCE_FIRE:
+            self.acc += 5
+        elif self.stance==STANCE_EARTH:
+            self.eva_short += 5
+        elif self.stance==STANCE_AIR:
+            self.spd += 5
+        elif self.stance==STANCE_WATER:
+            self.eva_wide += 5
             
         
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -984,6 +1056,16 @@ class Combatant_Stats:
             self.eva += self.eva_short
             self.dmg += self.dmg_short
             self.dfn += self.dfn_short
+
+            
+            #~~~~~~~~~~~~#
+            #    caps    #
+            #~~~~~~~~~~~~#
+
+        if self.sp > self.sp_max:
+            self.sp = self.sp_max
+        if self.hp > self.hp_max:
+            self.hp = self.hp_max
             
     # end def
         
@@ -991,11 +1073,13 @@ class Combatant_Stats:
 
 
 class Combatant_Techniques:
-    def __init__(self, favorite_element=None):
+    def __init__(self, owner=None, favorite_element=None):
+        self.owner=owner
         self.techniques={ "fire":{}, "earth":{}, "air":{}, "water":{} }
         # example: {"fire": {1: ["Firebolt",],},
         self.favorite_element=favorite_element
         self.mastery={
+            # element : {n points in basic mastery, bool for elemental status mastery}
             "F":{"hit":0, "status":False},
             "E":{"hit":0, "status":False},
             "A":{"hit":0, "status":False},
@@ -1003,6 +1087,7 @@ class Combatant_Techniques:
             }
 
     def add_tech(self, tech):
+        # TODO: special case for hybrid / multi-element techniques
         element = ELEMENTS[TECHNIQUES[tech]['element']]['name']
         level = TECHNIQUES[tech]['level']
         if self.techniques[element].get(level):
@@ -1018,12 +1103,12 @@ class Combatant_Techniques:
         except:
             print("Failed to remove tech -- {} lv{}: '{}'".append(element, level, tech))
 
-    def learn_tech(self, owner, tech):
+    def learn_tech(self, tech):
         data = TECHNIQUES[tech]
         reqSkill = data["req-skill"]
         if ELEMENTS[data["element"]]['name']==self.favorite_element:
             reqSkill -= 2
-        if owner.stats.skill >= reqSkill:
+        if self.owner.stats.skill >= reqSkill:
             self.add_tech(tech)
             return True
         return False
@@ -1051,7 +1136,7 @@ class Combatant_Techniques:
     short="    {}% chance to move Short\n".format(data['short']) if data['short']>0 else "",
     wide="    {}% chance to move Wide\n".format(data['wide']) if data['wide']>0 else "",
     status="    {}% chance target is {} for {} actions\n".format(
-        data['status'], ELEMENTS[data['element']['status'], data['statusDur']
+        data['status'], ELEMENTS[data['element']]['status'], data['statusDur']
         ) if data['status']>0 else "",
     special="    Special: {}\n".format(data['special']) if data['special'] else "",
     desc="    {}\n".format(data['notes']) if data['notes'] else ""
@@ -1081,11 +1166,12 @@ class Combatant_Techniques:
 class PlayerCharacter: # class PC class and non-player character NonPlayerCharacter
     def __init__(self, name="", favorite_element=0, weapon=0, pc=False, sprite=None):
         self.stats = Combatant_Stats(owner=self, weapon=weapon, favorite_weapon=weapon)
-        self.techs = Combatant_Techniques(favorite_element)
+        self.techs = Combatant_Techniques(owner=self, favorite_element=favorite_element)
         self.name = name
         self.pc=pc
         self.sprite=sprite
         self.mode = "wide"
+        self.dead = False
         self.resting = False
         self.rest_interrupted = False
         self.stale_moves = 0        # counter for doing the same move x times in a row
@@ -1127,6 +1213,12 @@ if __name__=="__main__":
             weapon=WPN_SLING,
             pc=True
             ) # temporary auto-populated test data
+    print("Pressure Bolt:",pc.techs.learn_tech("Pressure Bolt"))
+    print("Breath of Wind:",pc.techs.learn_tech("Breath of Wind"))
+    print("Bubble:",pc.techs.learn_tech("Bubble"))
+    print("Watergun:",pc.techs.learn_tech("Watergun"))
+    print("Wavecrash:",pc.techs.learn_tech("Wavecrash"))
+    
     game = Game(pc)
     
     npc=PlayerCharacter(
@@ -1138,14 +1230,23 @@ if __name__=="__main__":
     pc.stats.calculate_stats()
     npc.stats.calculate_stats()
 
-    print("OPEN")
+    # battle
+
+    print("OPEN battle")
 
     battle=Battle(game, pc, npc)
     game.init_battle(battle)
 
     battle.turn_begin()
     while True:
+        if pc.dead:
+            break
+        elif npc.dead:
+            break
         game.run()
+    print("CLOSE battle")
+
+    #
     
     
 
