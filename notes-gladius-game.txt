@@ -1,27 +1,24 @@
-Elemental bending a la Avatar: The Last Airbender. Most people cannot bend, those that can usually only bend one element; you are a rare individual, called a Starborn, who can learn to master all 4 elements, though you start with only one.
+The game is loosely based on the paper mario style combat system, as well as inspired by many other things, like Avatar: The Last Airbender's martial-arts-based magic system, Pathfinder's action economy system, Pokemon's move-priority and speed system, and the setting is based in Bronze Age Rome in the Coliseum. You're a gladiator fighting in a series of tournaments, and your progression is based on the accumulation of new techniques, and improving your stats.
 
-The combat is turn-based in the style of Paper Mario: The Thousand Year Door, and has a heavy focus on martial arts, including grappling, and the elemental synergy between the 4 natural elements.
-
-The setting is in Bronze Age Rome in the Coliseum, and you are a gladiator fighting in a series of tournaments. Each character's progression is based not on their gear, but on their accumulation of in-game techniques and out-of-game skill as a player.
-
-
-
+You can gain Boons which allow you to do something during combat that would normally be illegal (acquiring a temporary weapon, getting a temporary helper combatant, taking a break and healing, using some drugs or eating food (using an item basically), getting a free hit on the enemy, getting to reset your positions to the start of the fight, etc.). These are effectively one-time use "items" that you can call on at any point during the battle. You gain these by fulfilling certain randomized requirements during battles. 
+There are two fighting modes: Short and Wide. This is grappling and not grappling, respectively; so when someone grabs the other person the game goes into Short mode, and when someone escapes the grapple the mode returns to Wide mode. Some moves can only be used in one of the two modes. Many moves have a chance to go Wide or Short, and you can specialize in fighting Wide or fighting Short, which gives access to different moves and a different playstyle. Short moves are usually more deadly, while Wide moves are more defensive. 
 STORY
-	You are a savant with a gift for combat tactics and judging your opponent's abilities. You are a slave.
+    You are a savant with a gift for combat tactics and judging your opponent's abilities. You are a slave.
+
+    Captive and forced to compete in a series of increasingly brutal gladatorial challenges, you fight to survive.
+
+    While fighting your way up the ranks in the Coliseum, you are ambushed by a rival team outside of the ring. In this fight, there are no rules, and the loser will die.
+
+    Surviving to the top ranks, you begin your career as a top-tier entertainer, fighting in several ridiculous scenarios for the amusement of the rich onlookers. 
+
+    Your career is cut short when a rich businessman begins interfering and making the challenges very difficult. This comes to a head with a direct confrontation with the businessman outside of the ring.
+
+    This has the feel of a scripted loss, because it's very difficult, and he says that if you fight back, he will end you (and he will).
+
+    If you take the loss, he captures you and brings you far away to another land. This is the Bad Ending.
+
+    If you defeat him in combat, you are ended by his partners, but you go on to become a Legend of the Coliseum, and a martyr for the rights of slaves, leading to a revolution. This is the Good Ending.
 	
-	Captive and forced to compete in a series of increasingly brutal gladatorial challenges, you fight to survive.
-	
-	While fighting your way up the ranks in the Coliseum, you are ambushed by a rival team outside of the ring. In this fight, there are no rules, and the loser will die.
-	
-	Surviving to the top ranks, you begin your career as a top-tier entertainer, fighting in several ridiculous scenarios for the amusement of the rich onlookers. 
-	
-	Your career is cut short when a rich businessman begins interfering and making the challenges very difficult. This comes to a head with a direct confrontation with the businessman outside of the ring.
-	
-	This has the feel of a scripted loss, because it's very difficult, and he says that if you fight back, he will end you (and he will).
-	
-	If you take the loss, he captures you and brings you far away to another land. This is the Bad Ending.
-	
-	If you defeat him in combat, you are ended by his partners, but you go on to become a Legend of the Coliseum, and a martyr for the rights of slaves, leading to a revolution. This is the Good Ending.
 	
 	
 	
@@ -343,7 +340,7 @@ Derived Attributes
 
 Character Generation
 	Choose a favored element
-		You start with all Level 1 moves in the element of your choosing. This is your primary element, and Skill requirements for techniques in this element are reduced by 2. Your bane element is the one to the left of your element on the wheel (the one that defeats your element); all Skill requirements for this element are increased by 2.
+		You start with 3 Level 1 moves of your choosing, in the element of your choosing. This is your primary element, and Skill requirements for techniques in this element are reduced by 2. Your bane element is the one to the left of your element on the wheel (the one that defeats your element); all Skill requirements for this element are increased by 2.
 	Choose a favored weapon
 		You choose a favorite weapon, and you have +5% to-hit with that weapon.
 	Choose a stat to permanently boost
@@ -400,23 +397,25 @@ Failure and Game Over state
 
 MENU
 
-	Maximum list size: 8
+	Maximum list size: 9
 
-		1. Attack
-		2. Technique
+		1. Continue
+			(rest if no Attack chosen)
+		2. Attack
+		3. Technique
 			1. Water
 				1. Level 1, ...
 					(learned level 1 water techniques)
 			2. Air
 			3. Earth
 			4. Fire
-		3. Study
-		4. Claim Boon
+		4. Study
+		5. Claim Boon
 			(list of boons you have)
-		5. Retrieve Weapon (if you are disarmed, else disabled)
-		6. Rest
-		7. Suspend Match (save game)
-		8. Forfeit
+		6. Taunt
+		7. Retrieve Weapon (if you are disarmed, else disabled)
+		8. Suspend Match (save game)
+		9. Forfeit
 			("Forfeit" changes to "Are you sure?"			
 			1. Yes
 			2. No
@@ -435,3 +434,130 @@ x + (100-x)/2
 
 
 Enemies
+		Lv 1 Amber, Wide Fire, Sling
+			HP 10
+			SP 24
+			Techs:
+				Firebolt
+				Burning Touch
+			Tactics:
+				Wide: use 3x Firebolt
+				Short: use 3x Burning Touch
+				Forfeit at <=2 HP
+			Hint:
+				She's weak in Short because of her weapon of choice. She has low HP, so get in quick and finish her off before she pelts you to death with her stones.
+			Alt. variation (if player chooses Earth element):
+				Water: Bubble x3 Wide and Short
+				(this is to avoid the first encounter having an elemental advantage)
+				
+		Lv 2 Thomas, Short Earth, Axe & Shield
+			HP 16
+			SP 16
+			Techs:
+				Grind
+				Rockslide
+				Drill
+				Harden
+			Tactics:
+				If Hardened:
+					Wide: Rock Throw, Rockslide
+					Short: Drill, Grind
+				
+				Wide: Harden, Rockslide
+				Short: Drill, Grind
+				
+		Lv 3 Elba, Agile Water, Pole
+			HP 10
+			SP 24
+			Techs:
+				Bubble
+				Watergun
+				Slippery Skin
+				Hailstorm
+				Adhesion
+				Wavecrash
+			Tactics:
+				If we don't have Slippery Skin status:
+					Wide: Slippery Skin, Wavecrash
+					Short: Slippery Skin, Bubble, Bubble
+				Random:
+					Wide: 
+						Watergun, Bubble, Bubble
+						Hailstorm, Bubble, Bubble
+						Bubble, Bubble, Bubble
+					Short:
+						Adhesion, Bubble, Bubble
+						Watergun, Watergun, Watergun
+						Bubble, Bubble, Bubble
+						
+		Lv 4 Peter, Short Fire, Whip & Rope
+			HP 15
+			SP 18
+			Techs:
+				Firebolt
+				Devil's Tongue
+				Fire Eater
+				Rocket Punch
+				Singe
+			Tactics:
+				If opponent has >=2 Dfn:
+					Wide: Rocket Punch, Devil's Tongue
+					Short: 
+						If target Burning <= 2: Singe and Ignition
+						else use Fire Eater
+				If wide, use Devil's Tongue and 2x Firebolt
+				Else use Fire Eater
+				Low SP: Attack
+				Forfeit at <=3 HP
+		
+	Lv 5
+		Orson, Wide Air+Water, Chakram
+			Intelligence: 2
+			HP 16
+			SP 18
+				Breath of Wind
+				Pressure Bolt
+				Compression Wave
+				@Lv2: Pillow of Winds
+				@Lv3: Double Image
+				@Lv4: Gust Punch
+				
+		Lv 6 Kira, Short Fire+Earth
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TODO:
+	GUI
+		action stack
+		stats
+		HP bar
+	right click to see More Info
+		see detailed description of techniques, etc.
+	slow down action resolution
+	add effects to actions, animations (simple color changes, projectile launching, screen shaking etc.)
+	30 unique enemies (not necessarily unique sprites)
+	armor: 
+		start arm brace / shoulder pad (+5 EVA); at level 10 you get partial leg armor (+5 EVA), at level 15 you get full leg armor (+5 EVA), at level 20 you get a helmet if you choose it (-5 EVA; +1 DFN)
+		* Arm and leg armor raises EVA; helmets and breastplates lower EVA but raise DFN.
+			+5 EVA for each arm / leg that is armored
+			Helmet: -5 EVA, +1 DFN
+			Full helmet: -5 ACC, +1 DFN, Res Short -5, Res Wide -5
+			Breastplate: -5 EVA, +1 DFN, Res Short -5
+		
